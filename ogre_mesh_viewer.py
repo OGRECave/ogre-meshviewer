@@ -112,8 +112,15 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
                 if MenuItem("Quit", "Esc"):
                     self.getRoot().queueEndRendering()
                 EndMenu()
+            if BeginMenu("View"):
+                if MenuItem("Show Bounding Box", None, self.scn_mgr.getShowBoundingBoxes()):
+                    self.scn_mgr.showBoundingBoxes(not self.scn_mgr.getShowBoundingBoxes())
+                if self.entity.hasSkeleton() and MenuItem("Show Skeleton", None, self.entity.getDisplaySkeleton()):
+                    self.entity.setDisplaySkeleton(not self.entity.getDisplaySkeleton())
+                EndMenu()
+
             if BeginMenu("Help"):
-                if MenuItem("Metrics"):
+                if MenuItem("Metrics", None, self.show_metrics):
                     self.show_metrics = not self.show_metrics
                 if MenuItem("About"):
                     self.show_about = True
@@ -174,6 +181,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             Text(mesh.getSkeletonName())
             skel = mesh.getSkeleton()
 
+            # self.entity.setUpdateBoundingBoxFromSkeleton(True)
+
             for i in range(skel.getNumAnimations()):
                 name = skel.getAnimation(i).getName()
                 if TreeNode(name):
@@ -216,10 +225,11 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         root = self.getRoot()
         scn_mgr = root.createSceneManager()
+        self.scn_mgr = scn_mgr
 
-        ImguiManager.getSingleton().addFont("SdkTrays/Value")
+        ImguiManager.getSingleton().addFont("SdkTrays/Value", "Essential")
         ImguiManager.getSingleton().init(scn_mgr)
-        
+
         shadergen = OgreRTShader.ShaderGenerator.getSingleton()
         shadergen.addSceneManager(scn_mgr)  # must be done before we do anything with the scene
 

@@ -62,7 +62,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.orig_mat = None
         self.highlight_mat = None
 
-        self.animation_states = []
+        self.active_controllers = {}
 
     def keyPressed(self, evt):
         if evt.keysym.sym == OgreBites.SDLK_ESCAPE:
@@ -97,9 +97,6 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
     def frameStarted(self, evt):
         OgreBites.ApplicationContext.frameStarted(self, evt)
-
-        for a in self.animation_states:
-            a.addTime(evt.timeSinceLastFrame)
 
         ImguiManager.getSingleton().newFrame(
             evt.timeSinceLastFrame,
@@ -185,17 +182,21 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
                 name = skel.getAnimation(i).getName()
                 if TreeNode(name):
                     astate = self.entity.getAnimationState(name)
+                    controller_mgr = Ogre.ControllerManager.getSingleton()
                     if astate.getEnabled():
                         if Button("Reset"):
                             astate.setEnabled(False)
                             astate.setTimePosition(0)
-                            if astate in self.animation_states:
-                                self.animation_states.remove(astate)
+                            if name in self.active_controllers:
+                                controller_mgr.destroyController(self.active_controllers[name])
                     elif Button("Play"):
                         astate.setEnabled(True)
-                        self.animation_states.append(astate)
-                    SameLine()
-                    changed, value = SliderFloat("", astate.getTimePosition(), 0, astate.getLength())
+                        self.active_controllers[name] = controller_mgr.createFrameTimePassthroughController(
+                            Ogre.AnimationStateControllerValue.create(astate, True))
+                    changed = False
+                    if astate.getLength() > 0:
+                        SameLine()
+                        changed, value = SliderFloat("", astate.getTimePosition(), 0, astate.getLength(), "%.3fs")
                     if changed:
                         astate.setEnabled(True)
                         astate.setTimePosition(value)

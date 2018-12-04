@@ -5,8 +5,6 @@ import OgreBites
 import OgreImgui
 from OgreImgui import *
 
-import sys
-
 # we dispatch input events ourselves to give imgui precedence
 class InputDispatcher(OgreBites.InputListener):
 
@@ -53,13 +51,13 @@ class InputDispatcher(OgreBites.InputListener):
 
 class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
-    def __init__(self):
+    def __init__(self, meshname):
         OgreBites.ApplicationContext.__init__(self, "OgreMeshViewer", False)
         OgreBites.InputListener.__init__(self)
 
         self.show_about = False
         self.show_metrics = False
-        self.mesh = sys.argv[1]
+        self.mesh = meshname
         self.highlighted = -1
         self.orig_mat = None
         self.highlight_mat = None
@@ -222,6 +220,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.addInputListener(self)
 
         ImguiManager.createSingleton()
+        GetIO().IniFilename = self.getFSLayer().getWritablePath("imgui.ini")
 
         root = self.getRoot()
         scn_mgr = root.createSceneManager()
@@ -267,7 +266,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.addInputListener(self.input_dispatcher)
 
 if __name__ == "__main__":
-    app = MeshViewer()
+    import sys
+    app = MeshViewer(sys.argv[1])
     app.initApp()
     app.getRoot().startRendering()
     app.closeApp()

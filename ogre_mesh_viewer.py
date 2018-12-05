@@ -5,6 +5,10 @@ import OgreBites
 import OgreImgui
 from OgreImgui import *
 
+import os.path
+
+RGN_MESHVIEWER = "OgreMeshViewer"
+
 # we dispatch input events ourselves to give imgui precedence
 class InputDispatcher(OgreBites.InputListener):
 
@@ -51,13 +55,15 @@ class InputDispatcher(OgreBites.InputListener):
 
 class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
-    def __init__(self, meshname):
+    def __init__(self, meshname, rescfg):
         OgreBites.ApplicationContext.__init__(self, "OgreMeshViewer", False)
         OgreBites.InputListener.__init__(self)
 
         self.show_about = False
         self.show_metrics = False
-        self.mesh = meshname
+        self.meshname = os.path.basename(meshname)
+        self.meshdir = os.path.dirname(meshname)
+        self.rescfg = rescfg
         self.highlighted = -1
         self.orig_mat = None
         self.highlight_mat = None
@@ -130,12 +136,12 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             self.draw_metrics()
 
         # Mesh Info Sidebar
-        mesh = Ogre.MeshManager.getSingleton().getByName(self.mesh)
+        mesh = Ogre.MeshManager.getSingleton().getByName(self.meshname)
 
         SetNextWindowPos(ImVec2(0, 30))
         flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove
         Begin("MeshProps", None, flags)
-        Text(self.mesh)
+        Text(self.meshname)
 
         highlight = -1
 
@@ -216,6 +222,29 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         return True
 
+    def locateResources(self):
+        # use parent implementation to locate system-wide RTShaderLib
+        OgreBites.ApplicationContext.locateResources(self)
+
+        rgm = Ogre.ResourceGroupManager.getSingleton()
+        rgm.createResourceGroup(RGN_MESHVIEWER, False)
+
+        # we use the fonts from SdkTrays.zip
+        trays_loc = self.getDefaultMediaDir()+"/packs/SdkTrays.zip"
+        rgm.addResourceLocation(trays_loc, "Zip", RGN_MESHVIEWER)
+
+        if self.rescfg:
+            cfg = Ogre.ConfigFile()
+            cfg.loadDirect(self.rescfg)
+
+            for sec, settings in cfg.getSettingsBySection().items():
+                for kind, loc in settings.items():
+                    rgm.addResourceLocation(loc, kind, sec)
+
+        # explicitly add mesh location to be safe
+        if not rgm.resourceLocationExists(self.meshdir, Ogre.RGN_DEFAULT):
+            rgm.addResourceLocation(self.meshdir, "FileSystem", Ogre.RGN_DEFAULT)
+
     def setup(self):
         OgreBites.ApplicationContext.setup(self)
         self.addInputListener(self)
@@ -227,7 +256,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         scn_mgr = root.createSceneManager()
         self.scn_mgr = scn_mgr
 
-        ImguiManager.getSingleton().addFont("SdkTrays/Value", "Essential")
+        ImguiManager.getSingleton().addFont("SdkTrays/Value", RGN_MESHVIEWER)
         ImguiManager.getSingleton().init(scn_mgr)
 
         shadergen = OgreRTShader.ShaderGenerator.getSingleton()
@@ -235,24 +264,22 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         scn_mgr.setAmbientLight(Ogre.ColourValue(.1, .1, .1))
 
+        self.highlight_mat = Ogre.MaterialManager.getSingleton().create("Highlight", RGN_MESHVIEWER)
+        self.highlight_mat.getTechniques()[0].getPasses()[0].setEmissive(Ogre.ColourValue(1, 1, 0))
+
+        self.entity = scn_mgr.createEntity(self.meshname)
+        node = scn_mgr.getRootSceneNode().createChildSceneNode().attachObject(self.entity)
+
+        diam = self.entity.getBoundingBox().getSize().length()
+
         cam = scn_mgr.createCamera("myCam")
-        cam.setNearClipDistance(5)
+        cam.setNearClipDistance(diam * 0.1)
         cam.setAutoAspectRatio(True)
         camnode = scn_mgr.getRootSceneNode().createChildSceneNode()
         camnode.attachObject(cam)
 
-        self.highlight_mat = Ogre.MaterialManager.getSingleton().create("Viewer/Highlight", "General")
-        self.highlight_mat.getTechniques()[0].getPasses()[0].setEmissive(Ogre.ColourValue(1, 1, 0))
-
         vp = self.getRenderWindow().addViewport(cam)
         vp.setBackgroundColour(Ogre.ColourValue(.3, .3, .3))
-
-        self.entity = scn_mgr.createEntity(self.mesh)
-
-        diam = self.entity.getBoundingBox().getSize().length()
-
-        node = scn_mgr.getRootSceneNode().createChildSceneNode()
-        node.attachObject(self.entity)
 
         camman = OgreBites.CameraMan(camnode)
         camman.setStyle(OgreBites.CS_ORBIT)
@@ -267,8 +294,13 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.addInputListener(self.input_dispatcher)
 
 if __name__ == "__main__":
-    import sys
-    app = MeshViewer(sys.argv[1])
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Ogre Mesh Viewer")
+    parser.add_argument("meshfile", help="path to a .mesh")
+    parser.add_argument("-c", "--rescfg", help="path to the resources.cfg")
+    args = parser.parse_args() 
+    app = MeshViewer(args.meshfile, args.rescfg)
     app.initApp()
     app.getRoot().startRendering()
     app.closeApp()

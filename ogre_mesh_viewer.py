@@ -178,17 +178,18 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             self.entity.getSubEntities()[highlight].setMaterial(self.highlight_mat)
             self.highlighted = highlight
 
-        if mesh.hasSkeleton() and CollapsingHeader("Skeleton"):
-            Text(mesh.getSkeletonName())
-            skel = mesh.getSkeleton()
+        animations = self.entity.getAllAnimationStates()
+        if animations is not None and CollapsingHeader("Animations"):
+            controller_mgr = Ogre.ControllerManager.getSingleton()
 
-            # self.entity.setUpdateBoundingBoxFromSkeleton(True)
+            if self.entity.hasSkeleton():
+                Text("Skeleton: {}".format(mesh.getSkeletonName()))
+                # self.entity.setUpdateBoundingBoxFromSkeleton(True)
+            if mesh.hasVertexAnimation():
+                Text("Vertex Animations")
 
-            for i in range(skel.getNumAnimations()):
-                name = skel.getAnimation(i).getName()
+            for name, astate in animations.getAnimationStates().items():
                 if TreeNode(name):
-                    astate = self.entity.getAnimationState(name)
-                    controller_mgr = Ogre.ControllerManager.getSingleton()
                     if astate.getEnabled():
                         if Button("Reset"):
                             astate.setEnabled(False)
@@ -273,10 +274,14 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         diam = self.entity.getBoundingBox().getSize().length()
 
         cam = scn_mgr.createCamera("myCam")
-        cam.setNearClipDistance(diam * 0.1)
+        cam.setNearClipDistance(diam * 0.01)
         cam.setAutoAspectRatio(True)
         camnode = scn_mgr.getRootSceneNode().createChildSceneNode()
         camnode.attachObject(cam)
+
+        light = scn_mgr.createLight("MainLight")
+        light.setType(Ogre.Light.LT_DIRECTIONAL)
+        camnode.attachObject(light)
 
         vp = self.getRenderWindow().addViewport(cam)
         vp.setBackgroundColour(Ogre.ColourValue(.3, .3, .3))
@@ -284,11 +289,6 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         camman = OgreBites.CameraMan(camnode)
         camman.setStyle(OgreBites.CS_ORBIT)
         camman.setYawPitchDist(Ogre.Radian(0), Ogre.Radian(0.3), diam)
-
-        light = scn_mgr.createLight("MainLight")
-        lightnode = scn_mgr.getRootSceneNode().createChildSceneNode()
-        lightnode.setPosition(Ogre.Vector3(0, 1, 1.5) * diam)
-        lightnode.attachObject(light)
 
         self.input_dispatcher = InputDispatcher(camman)
         self.addInputListener(self.input_dispatcher)

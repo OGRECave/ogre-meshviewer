@@ -73,8 +73,19 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
     def keyPressed(self, evt):
         if evt.keysym.sym == OgreBites.SDLK_ESCAPE:
             self.getRoot().queueEndRendering()
+        elif evt.keysym.sym == ord("b"):
+            self._toggle_bbox()
+        elif evt.keysym.sym == ord("a"):
+            self._toggle_axes()
 
         return True
+
+    def _toggle_bbox(self):
+        enode = self.entity.getParentSceneNode()
+        enode.showBoundingBox(not enode.getShowBoundingBox())
+
+    def _toggle_axes(self):
+        self.axes.setVisible(not self.axes.getVisible())
 
     def draw_about(self):
         flags = ImGuiWindowFlags_AlwaysAutoResize
@@ -114,8 +125,11 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
                     self.getRoot().queueEndRendering()
                 EndMenu()
             if BeginMenu("View"):
-                if MenuItem("Show Bounding Box", None, self.scn_mgr.getShowBoundingBoxes()):
-                    self.scn_mgr.showBoundingBoxes(not self.scn_mgr.getShowBoundingBoxes())
+                enode = self.entity.getParentSceneNode()
+                if MenuItem("Show Axes", "A", self.axes.getVisible()):
+                    self._toggle_axes()
+                if MenuItem("Show Bounding Box", "B", enode.getShowBoundingBox()):
+                    self._toggle_bbox()
                 if self.entity.hasSkeleton() and MenuItem("Show Skeleton", None, self.entity.getDisplaySkeleton()):
                     self.entity.setDisplaySkeleton(not self.entity.getDisplaySkeleton())
                 EndMenu()
@@ -269,9 +283,16 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.highlight_mat.getTechniques()[0].getPasses()[0].setEmissive(Ogre.ColourValue(1, 1, 0))
 
         self.entity = scn_mgr.createEntity(self.meshname)
-        node = scn_mgr.getRootSceneNode().createChildSceneNode().attachObject(self.entity)
+        scn_mgr.getRootSceneNode().createChildSceneNode().attachObject(self.entity)
 
         diam = self.entity.getBoundingBox().getSize().length()
+
+        axes_node = scn_mgr.getRootSceneNode().createChildSceneNode()
+        axes_node.getDebugRenderable()  # make sure Ogre/Debug/AxesMesh is created
+        self.axes = scn_mgr.createEntity("Ogre/Debug/AxesMesh")
+        axes_node.attachObject(self.axes)
+        axes_node.setScale(Ogre.Vector3(diam / 4))
+        self.axes.setVisible(False)
 
         cam = scn_mgr.createCamera("myCam")
         cam.setNearClipDistance(diam * 0.01)
@@ -289,6 +310,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         camman = OgreBites.CameraMan(camnode)
         camman.setStyle(OgreBites.CS_ORBIT)
         camman.setYawPitchDist(Ogre.Radian(0), Ogre.Radian(0.3), diam)
+        camman.setFixedYaw(False)
 
         self.input_dispatcher = InputDispatcher(camman)
         self.addInputListener(self.input_dispatcher)

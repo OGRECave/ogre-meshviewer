@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=OGRE Mesh Viewer
+GenericName=Mesh Viewer
+Keywords=viewer;mesh;
+MimeType=model/x.stl-binary;
+Exec=ogre-meshviewer %f
+Path=${SNAP}/bin/
+Icon=${SNAP}/meta/gui/icon.svg
+Terminal=false
+Categories=Utility;

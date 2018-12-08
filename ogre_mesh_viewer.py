@@ -67,6 +67,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.highlighted = -1
         self.orig_mat = None
         self.highlight_mat = None
+        self.restart = False
 
         self.active_controllers = {}
 
@@ -121,6 +122,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         if BeginMainMenuBar():
             if BeginMenu("File"):
+                if MenuItem("Select Renderer"):
+                    self.getRoot().queueEndRendering()
+                    self.restart = True
                 if MenuItem("Quit", "Esc"):
                     self.getRoot().queueEndRendering()
                 EndMenu()
@@ -264,15 +268,16 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         OgreBites.ApplicationContext.setup(self)
         self.addInputListener(self)
 
-        ImguiManager.createSingleton()
+        self.restart = False
+        self.imgui_mgr = ImguiManager()
         GetIO().IniFilename = self.getFSLayer().getWritablePath("imgui.ini")
 
         root = self.getRoot()
         scn_mgr = root.createSceneManager()
         self.scn_mgr = scn_mgr
 
-        ImguiManager.getSingleton().addFont("SdkTrays/Value", RGN_MESHVIEWER)
-        ImguiManager.getSingleton().init(scn_mgr)
+        self.imgui_mgr.addFont("SdkTrays/Value", RGN_MESHVIEWER)
+        self.imgui_mgr.init(scn_mgr)
 
         shadergen = OgreRTShader.ShaderGenerator.getSingleton()
         shadergen.addSceneManager(scn_mgr)  # must be done before we do anything with the scene
@@ -314,6 +319,15 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         self.input_dispatcher = InputDispatcher(camman)
         self.addInputListener(self.input_dispatcher)
+    
+    def shutdown(self):
+        OgreBites.ApplicationContext.shutdown(self)
+        self.imgui_mgr = None
+        
+        if self.restart:
+            # make sure empty rendersystem is written
+            self.getRoot().shutdown()
+            self.getRoot().setRenderSystem(None)
 
 if __name__ == "__main__":
     import argparse
@@ -323,6 +337,10 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--rescfg", help="path to the resources.cfg")
     args = parser.parse_args() 
     app = MeshViewer(args.meshfile, args.rescfg)
-    app.initApp()
-    app.getRoot().startRendering()
-    app.closeApp()
+
+    while True: # allow auto restart
+        app.initApp()
+        app.getRoot().startRendering()
+        app.closeApp()
+
+        if not app.restart: break

@@ -81,6 +81,17 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         return True
 
+    def mousePressed(self, evt):
+        if evt.clicks != 2:
+            return True
+        vp = self.cam.getViewport()
+        ray = self.cam.getCameraToViewportRay(evt.x / vp.getActualWidth(), evt.y / vp.getActualHeight())
+        self.ray_query.setRay(ray)
+        for hit in self.ray_query.execute():
+            self.camman.setPivotOffset(ray.getPoint(hit.distance))
+            break
+        return True
+
     def _toggle_bbox(self):
         enode = self.entity.getParentSceneNode()
         enode.showBoundingBox(not enode.getShowBoundingBox())
@@ -276,6 +287,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         scn_mgr = root.createSceneManager()
         self.scn_mgr = scn_mgr
 
+        # for picking
+        self.ray_query = scn_mgr.createRayQuery(Ogre.Ray())
+
         self.imgui_mgr.addFont("SdkTrays/Value", RGN_MESHVIEWER)
         self.imgui_mgr.init(scn_mgr)
 
@@ -298,26 +312,27 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         axes_node.attachObject(self.axes)
         axes_node.setScale(Ogre.Vector3(diam / 4))
         self.axes.setVisible(False)
+        self.axes.setQueryFlags(0) # exclude from picking
 
-        cam = scn_mgr.createCamera("myCam")
-        cam.setNearClipDistance(diam * 0.01)
-        cam.setAutoAspectRatio(True)
+        self.cam = scn_mgr.createCamera("myCam")
+        self.cam.setNearClipDistance(diam * 0.01)
+        self.cam.setAutoAspectRatio(True)
         camnode = scn_mgr.getRootSceneNode().createChildSceneNode()
-        camnode.attachObject(cam)
+        camnode.attachObject(self.cam)
 
         light = scn_mgr.createLight("MainLight")
         light.setType(Ogre.Light.LT_DIRECTIONAL)
         camnode.attachObject(light)
 
-        vp = self.getRenderWindow().addViewport(cam)
+        vp = self.getRenderWindow().addViewport(self.cam)
         vp.setBackgroundColour(Ogre.ColourValue(.3, .3, .3))
 
-        camman = OgreBites.CameraMan(camnode)
-        camman.setStyle(OgreBites.CS_ORBIT)
-        camman.setYawPitchDist(Ogre.Radian(0), Ogre.Radian(0.3), diam)
-        camman.setFixedYaw(False)
+        self.camman = OgreBites.CameraMan(camnode)
+        self.camman.setStyle(OgreBites.CS_ORBIT)
+        self.camman.setYawPitchDist(Ogre.Radian(0), Ogre.Radian(0.3), diam)
+        self.camman.setFixedYaw(False)
 
-        self.input_dispatcher = InputDispatcher(camman)
+        self.input_dispatcher = InputDispatcher(self.camman)
         self.addInputListener(self.input_dispatcher)
     
     def shutdown(self):

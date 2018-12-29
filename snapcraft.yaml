@@ -39,7 +39,7 @@ parts:
             - -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=FALSE
             - -DCMAKE_INSTALL_PREFIX=/usr/
         source: https://github.com/OGRECave/ogre.git
-        source-tag: master
+        source-tag: stable
         build-packages:
             - libxaw7-dev
             - libzzip-dev

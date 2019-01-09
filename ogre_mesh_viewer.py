@@ -253,15 +253,18 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         return True
 
     def locateResources(self):
+        rgm = Ogre.ResourceGroupManager.getSingleton()
+        # ensure our resource group is separate, even with a local resources.cfg
+        rgm.createResourceGroup(RGN_MESHVIEWER, False)
+
         # use parent implementation to locate system-wide RTShaderLib
         OgreBites.ApplicationContext.locateResources(self)
 
-        rgm = Ogre.ResourceGroupManager.getSingleton()
-        rgm.createResourceGroup(RGN_MESHVIEWER, False)
-
-        # we use the fonts from SdkTrays.zip
-        trays_loc = self.getDefaultMediaDir()+"/packs/SdkTrays.zip"
-        rgm.addResourceLocation(trays_loc, "Zip", RGN_MESHVIEWER)
+        # allow override by local resources.cfg
+        if not self.getFSLayer().fileExists("resources.cfg"):
+            # we use the fonts from SdkTrays.zip
+            trays_loc = self.getDefaultMediaDir()+"/packs/SdkTrays.zip"
+            rgm.addResourceLocation(trays_loc, "Zip", RGN_MESHVIEWER)
 
         if self.rescfg:
             cfg = Ogre.ConfigFile()

@@ -27,3 +27,5 @@ where `meshfile` can be either an absolute path or a resource name referenced in
 
 # download
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/ogre-meshviewer)
+
+[Portable Windows Package](https://github.com/OGRECave/ogre-meshviewer/releases)

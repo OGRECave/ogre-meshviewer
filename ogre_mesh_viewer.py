@@ -1,7 +1,14 @@
 import Ogre
-import OgreRTShader
-import OgreOverlay
-import OgreBites
+
+if (Ogre.OGRE_VERSION_MAJOR, Ogre.OGRE_VERSION_MINOR) < (1, 12):
+    import OgreRTShader
+    import OgreOverlay
+    import OgreBites
+else:
+    import Ogre.RTShader as OgreRTShader
+    import Ogre.Overlay as OgreOverlay
+    import Ogre.Bites as OgreBites
+
 import OgreImgui
 from OgreImgui import *
 
@@ -56,7 +63,7 @@ class InputDispatcher(OgreBites.InputListener):
 class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
     def __init__(self, meshname, rescfg):
-        OgreBites.ApplicationContext.__init__(self, "OgreMeshViewer", False)
+        OgreBites.ApplicationContext.__init__(self, "OgreMeshViewer")
         OgreBites.InputListener.__init__(self)
 
         self.show_about = False

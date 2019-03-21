@@ -85,6 +85,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             self._toggle_bbox()
         elif evt.keysym.sym == ord("a"):
             self._toggle_axes()
+        elif evt.keysym.sym == ord("p"):
+            self._save_screenshot()
 
         return True
 
@@ -105,6 +107,15 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
     def _toggle_axes(self):
         self.axes.setVisible(not self.axes.getVisible())
+
+    def _save_screenshot(self):
+        name = os.path.splitext(self.meshname)[0]
+        outpath = os.path.join(self.meshdir, "screenshot_{}_".format(name))
+
+        self.cam.getViewport().setOverlaysEnabled(False)
+        self.getRoot().renderOneFrame()
+        self.getRenderWindow().writeContentsToTimestampedFile(outpath, ".png")
+        self.cam.getViewport().setOverlaysEnabled(True)
 
     def draw_about(self):
         flags = ImGuiWindowFlags_AlwaysAutoResize
@@ -134,6 +145,10 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
     def frameStarted(self, evt):
         OgreBites.ApplicationContext.frameStarted(self, evt)
 
+        if not self.cam.getViewport().getOverlaysEnabled():
+            # should be checked in OgreImgui
+            return True
+
         ImguiManager.getSingleton().newFrame(
             evt.timeSinceLastFrame,
             Ogre.Rect(0, 0, self.getRenderWindow().getWidth(), self.getRenderWindow().getHeight()))
@@ -143,6 +158,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
                 if MenuItem("Select Renderer"):
                     self.getRoot().queueEndRendering()
                     self.restart = True
+                if MenuItem("Save Screenshot", "P"):
+                    self._save_screenshot()
                 if MenuItem("Quit", "Esc"):
                     self.getRoot().queueEndRendering()
                 EndMenu()

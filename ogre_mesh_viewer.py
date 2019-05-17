@@ -59,6 +59,26 @@ class InputDispatcher(OgreBites.InputListener):
 
         return self.camman.mouseWheelRolled(evt)
 
+VES2STR = ("ERROR", "Position", "Blend Weights", "Blend Indices", "Normal", "Diffuse", "Specular", "Texcoord", "Binormal", "Tangent")
+VET2STR = ("float", "float2", "float3", "float4", "ERROR", "short", "short2", "short3", "short4", "ubyte4", "argb", "abgr")
+
+def show_vertex_decl(decl):
+    Columns(2)
+    Text("Semantic")
+    NextColumn()
+    Text("Type")
+    NextColumn()
+    Separator()
+
+    for e in decl.getElements():
+        Text(VES2STR[e.getSemantic()])
+        NextColumn()
+        try:
+            Text(VET2STR[e.getType()])
+        except IndexError:
+            Text("TODO")
+        NextColumn()
+    Columns(1)
 
 class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
@@ -200,7 +220,10 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         if CollapsingHeader("Geometry"):
             if mesh.sharedVertexData:
-                Text("Shared Vertices: {}".format(mesh.sharedVertexData.vertexCount))
+                show_vertex_decl(sm.sharedVertexData.vertexDeclaration)
+                if TreeNode("Shared Vertices: {}".format(mesh.sharedVertexData.vertexCount)):
+                    show_vertex_decl(sm.vertexData.vertexDeclaration)
+                    TreePop()
             else:
                 Text("Shared Vertices: None")
 
@@ -218,7 +241,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
                         BulletText("Indices: None")
 
                     if sm.vertexData:
-                        BulletText("Vertices: {}".format(sm.vertexData.vertexCount))
+                        if TreeNode("Vertices: {}".format(sm.vertexData.vertexCount)):
+                            show_vertex_decl(sm.vertexData.vertexDeclaration)
+                            TreePop()
                     else:
                         BulletText("Vertices: shared")
                     TreePop()

@@ -1,5 +1,5 @@
 name: ogre-meshviewer
-version: 18.12
+version: 19.05
 confinement: strict
 summary: OGRE Mesh Viewer
 description: Viewer for .mesh model files as consumed by OGRE
@@ -39,7 +39,7 @@ parts:
             - -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=FALSE
             - -DCMAKE_INSTALL_PREFIX=/usr/
         source: https://github.com/OGRECave/ogre.git
-        source-tag: stable
+        source-tag: master
         build-packages:
             - libxaw7-dev
             - libzzip-dev

@@ -220,9 +220,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         if CollapsingHeader("Geometry"):
             if mesh.sharedVertexData:
-                show_vertex_decl(sm.sharedVertexData.vertexDeclaration)
                 if TreeNode("Shared Vertices: {}".format(mesh.sharedVertexData.vertexCount)):
-                    show_vertex_decl(sm.vertexData.vertexDeclaration)
+                    show_vertex_decl(mesh.sharedVertexData.vertexDeclaration)
                     TreePop()
             else:
                 Text("Shared Vertices: None")

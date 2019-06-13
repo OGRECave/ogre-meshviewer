@@ -19,45 +19,46 @@ RGN_MESHVIEWER = "OgreMeshViewer"
 # we dispatch input events ourselves to give imgui precedence
 class InputDispatcher(OgreBites.InputListener):
 
-    def __init__(self, camman):
+    def __init__(self, first, second):
         OgreBites.InputListener.__init__(self)
-        self.camman = camman
+        self.first = first
+        self.second = second
 
     def keyPressed(self, evt):
-        if ImguiManager.getSingleton().keyPressed(evt):
+        if self.first.keyPressed(evt):
             return True
 
-        return self.camman.keyPressed(evt)
+        return self.second.keyPressed(evt)
 
     def keyReleased(self, evt):
-        if ImguiManager.getSingleton().keyReleased(evt):
+        if self.first.keyReleased(evt):
             return True
 
-        return self.camman.keyReleased(evt)
+        return self.second.keyReleased(evt)
 
     def mouseMoved(self, evt):
-        if ImguiManager.getSingleton().mouseMoved(evt):
+        if self.first.mouseMoved(evt):
             return True
 
-        return self.camman.mouseMoved(evt)
+        return self.second.mouseMoved(evt)
 
     def mousePressed(self, evt):
-        if ImguiManager.getSingleton().mousePressed(evt):
+        if self.first.mousePressed(evt):
             return True
 
-        return self.camman.mousePressed(evt)
+        return self.second.mousePressed(evt)
 
     def mouseReleased(self, evt):
-        if ImguiManager.getSingleton().mouseReleased(evt):
+        if self.first.mouseReleased(evt):
             return True
 
-        return self.camman.mouseReleased(evt)
+        return self.second.mouseReleased(evt)
 
     def mouseWheelRolled(self, evt):
-        if ImguiManager.getSingleton().mouseWheelRolled(evt):
+        if self.first.mouseWheelRolled(evt):
             return True
 
-        return self.camman.mouseWheelRolled(evt)
+        return self.second.mouseWheelRolled(evt)
 
 VES2STR = ("ERROR", "Position", "Blend Weights", "Blend Indices", "Normal", "Diffuse", "Specular", "Texcoord", "Binormal", "Tangent")
 VET2STR = ("float", "float2", "float3", "float4", "ERROR", "short", "short2", "short3", "short4", "ubyte4", "argb", "abgr")
@@ -383,7 +384,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.camman.setYawPitchDist(Ogre.Radian(0), Ogre.Radian(0.3), diam)
         self.camman.setFixedYaw(False)
 
-        self.input_dispatcher = InputDispatcher(self.camman)
+        self.input_dispatcher = InputDispatcher(self.imgui_mgr.getInputListener(), self.camman)
         self.addInputListener(self.input_dispatcher)
     
     def shutdown(self):

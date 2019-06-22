@@ -81,6 +81,19 @@ def show_vertex_decl(decl):
         NextColumn()
     Columns(1)
 
+class MaterialCreator(Ogre.MeshSerializerListener):
+    def __init__(self):
+        Ogre.MeshSerializerListener.__init__(self)
+
+    def processMaterialName(self, mesh, name):
+        # ensure some material exists so we can display the name
+        mat_mgr = Ogre.MaterialManager.getSingleton()
+        if not mat_mgr.resourceExists(name, mesh.getGroup()):
+            mat_mgr.create(name, mesh.getGroup())
+
+    def processSkeletonName(self, mesh, name): pass
+    def processMeshCompleted(self, mesh): pass
+
 class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
     def __init__(self, meshname, rescfg):
@@ -338,6 +351,10 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         root = self.getRoot()
         scn_mgr = root.createSceneManager()
         self.scn_mgr = scn_mgr
+
+        # set listener to deal with missing materials
+        self.mat_creator = MaterialCreator()
+        Ogre.MeshManager.getSingleton().setListener(self.mat_creator)
 
         # for picking
         self.ray_query = scn_mgr.createRayQuery(Ogre.Ray())

@@ -391,6 +391,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         light = scn_mgr.createLight("MainLight")
         light.setType(Ogre.Light.LT_DIRECTIONAL)
+        light.setSpecularColour(Ogre.ColourValue.White)
         camnode.attachObject(light)
 
         vp = self.getRenderWindow().addViewport(self.cam)

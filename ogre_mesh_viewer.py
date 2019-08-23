@@ -89,7 +89,12 @@ class MaterialCreator(Ogre.MeshSerializerListener):
         # ensure some material exists so we can display the name
         mat_mgr = Ogre.MaterialManager.getSingleton()
         if not mat_mgr.resourceExists(name, mesh.getGroup()):
-            mat_mgr.create(name, mesh.getGroup())
+            try:
+                mat_mgr.create(name, mesh.getGroup())
+            except RuntimeError:
+                # do not crash if name is ""
+                # this is illegal due to OGRE specs, but we want to show that in the UI
+                pass
 
     def processSkeletonName(self, mesh, name): pass
     def processMeshCompleted(self, mesh): pass

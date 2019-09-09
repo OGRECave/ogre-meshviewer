@@ -1,14 +1,19 @@
 name: ogre-meshviewer
-version: 19.05
+version: "19.05"
 confinement: strict
 summary: OGRE Mesh Viewer
 description: Viewer for .mesh model files as consumed by OGRE
+base: core18
 
 apps:
     ogre-meshviewer:
         command: desktop-launch python3 $SNAP/bin/ogre_mesh_viewer.py
         plugs: [home, opengl, x11]
 parts:
+    desktop-glib-only:
+        source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+        source-subdir: glib-only
+        plugin: make
     ogre:
         plugin: cmake
         configflags:
@@ -30,7 +35,9 @@ parts:
             - -DOGRE_BUILD_PLUGIN_BSP=FALSE
             - -DOGRE_BUILD_PLUGIN_PCZ=FALSE
             - -DOGRE_BUILD_PLUGIN_OCTREE=FALSE
+            - -DOGRE_BUILD_PLUGIN_DOT_SCENE=FALSE
             - -DOGRE_BUILD_COMPONENT_JAVA=FALSE
+            - -DOGRE_BUILD_COMPONENT_CSHARP=FALSE
             - -DOGRE_BUILD_COMPONENT_VOLUME=FALSE
             - -DOGRE_BUILD_COMPONENT_TERRAIN=FALSE
             - -DOGRE_BUILD_COMPONENT_PAGING=FALSE
@@ -38,6 +45,7 @@ parts:
             - -DOGRE_BUILD_COMPONENT_HLMS=FALSE
             - -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=FALSE
             - -DCMAKE_INSTALL_PREFIX=/usr/
+            - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-8
         source: https://github.com/OGRECave/ogre.git
         source-tag: master
         build-packages:
@@ -51,13 +59,14 @@ parts:
             - libsdl2-dev
             - libpython3-dev
             - swig3.0
+            - clang-8
         stage-packages:
             - libfreetype6
             - libfreeimage3
             - libzzip-0-13
             - libsdl2-2.0-0
             - python3
-            - libpython3.5
+            - libpython3.6
             - libxaw7
             - libxt6
             - try: [nvidia-cg-dev] # should be in build-packages, but we have no try: there

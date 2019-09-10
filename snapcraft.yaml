@@ -60,6 +60,7 @@ parts:
             - libpython3-dev
             - swig3.0
             - clang-8
+            - try: [nvidia-cg-dev]
         stage-packages:
             - libfreetype6
             - libfreeimage3
@@ -69,7 +70,6 @@ parts:
             - libpython3.6
             - libxaw7
             - libxt6
-            - try: [nvidia-cg-dev] # should be in build-packages, but we have no try: there
             - try: [libcggl]
         stage:
             - -usr/share/OGRE/Media/volumeTerrain

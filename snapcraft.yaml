@@ -1,5 +1,5 @@
 name: ogre-meshviewer
-version: "19.05"
+version: "19.09"
 confinement: strict
 summary: OGRE Mesh Viewer
 description: Viewer for .mesh model files as consumed by OGRE
@@ -80,17 +80,6 @@ parts:
             - -usr/share/OGRE/Media/packs/fresneldemo.zip
             - -usr/share/OGRE/Media/packs/DamagedHelmet.zip
             - -usr/share/OGRE/resources.cfg
-    ogre-imgui:
-        plugin: cmake
-        configflags:
-            - -DCMAKE_BUILD_TYPE=Release
-            - -DCMAKE_INSTALL_PREFIX=/usr/
-            - -DCMAKE_CXX_FLAGS=-std=c++11
-            - -DBUILD_EXAMPLE=FALSE
-            - -DPYTHON_EXECUTABLE=/usr/bin/python3
-        source: https://github.com/OGRECave/ogre-imgui.git
-        source-tag: master
-        after: [ogre]
     viewer:
         plugin: dump
         source: https://github.com/OGRECave/ogre-meshviewer.git
@@ -98,4 +87,4 @@ parts:
             ogre_mesh_viewer.py: bin/
         stage:
             - bin/
-        after: [ogre, ogre-imgui, desktop-glib-only]
+        after: [ogre, desktop-glib-only]

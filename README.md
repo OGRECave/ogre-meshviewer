@@ -21,8 +21,7 @@ ogre-meshviewer [-h] [-c RESCFG] meshfile
 where `meshfile` can be either an absolute path or a resource name referenced in RESCFG.
 
 # dependencies
-* ogre 1.11.5+
-* ogre-imgui
+* ogre 1.12.3+
 * python3
 
 # download

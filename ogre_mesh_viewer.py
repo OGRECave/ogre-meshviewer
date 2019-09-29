@@ -1,64 +1,12 @@
 import Ogre
+import Ogre.RTShader as OgreRTShader
+import Ogre.Bites as OgreBites
 
-if (Ogre.OGRE_VERSION_MAJOR, Ogre.OGRE_VERSION_MINOR) < (1, 12):
-    import OgreRTShader
-    import OgreOverlay
-    import OgreBites
-else:
-    import Ogre.RTShader as OgreRTShader
-    import Ogre.Overlay as OgreOverlay
-    import Ogre.Bites as OgreBites
-
-import OgreImgui
-from OgreImgui import *
+from Ogre.Overlay import *
 
 import os.path
 
 RGN_MESHVIEWER = "OgreMeshViewer"
-
-# we dispatch input events ourselves to give imgui precedence
-class InputDispatcher(OgreBites.InputListener):
-
-    def __init__(self, first, second):
-        OgreBites.InputListener.__init__(self)
-        self.first = first
-        self.second = second
-
-    def keyPressed(self, evt):
-        if self.first.keyPressed(evt):
-            return True
-
-        return self.second.keyPressed(evt)
-
-    def keyReleased(self, evt):
-        if self.first.keyReleased(evt):
-            return True
-
-        return self.second.keyReleased(evt)
-
-    def mouseMoved(self, evt):
-        if self.first.mouseMoved(evt):
-            return True
-
-        return self.second.mouseMoved(evt)
-
-    def mousePressed(self, evt):
-        if self.first.mousePressed(evt):
-            return True
-
-        return self.second.mousePressed(evt)
-
-    def mouseReleased(self, evt):
-        if self.first.mouseReleased(evt):
-            return True
-
-        return self.second.mouseReleased(evt)
-
-    def mouseWheelRolled(self, evt):
-        if self.first.mouseWheelRolled(evt):
-            return True
-
-        return self.second.mouseWheelRolled(evt)
 
 VES2STR = ("ERROR", "Position", "Blend Weights", "Blend Indices", "Normal", "Diffuse", "Specular", "Texcoord", "Binormal", "Tangent")
 VET2STR = ("float", "float2", "float3", "float4", "ERROR", "short", "short2", "short3", "short4", "ubyte4", "argb", "abgr")
@@ -162,8 +110,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         Text("By Pavel Rojtberg")
         Text("OgreMeshViewer is licensed under the MIT License, see LICENSE for more information.")
         Separator()
-        BulletText("Ogre:      %s" % Ogre.__version__)
-        BulletText("OgreImgui: %s" % OgreImgui.__version__)
+        BulletText("Ogre:  %s" % Ogre.__version__)
+        BulletText("imgui: %s" % GetVersion())
         End()
 
     def draw_metrics(self):
@@ -185,12 +133,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         OgreBites.ApplicationContext.frameStarted(self, evt)
 
         if not self.cam.getViewport().getOverlaysEnabled():
-            # should be checked in OgreImgui
             return True
 
-        ImguiManager.getSingleton().newFrame(
-            evt.timeSinceLastFrame,
-            Ogre.Rect(0, 0, self.getRenderWindow().getWidth(), self.getRenderWindow().getHeight()))
+        ImGuiOverlay.NewFrame(evt)
 
         if BeginMainMenuBar():
             if BeginMenu("File"):
@@ -350,11 +295,12 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.addInputListener(self)
 
         self.restart = False
-        self.imgui_mgr = ImguiManager()
+        imgui_overlay = ImGuiOverlay()
         GetIO().IniFilename = self.getFSLayer().getWritablePath("imgui.ini")
 
         root = self.getRoot()
         scn_mgr = root.createSceneManager()
+        scn_mgr.addRenderQueueListener(self.getOverlaySystem())
         self.scn_mgr = scn_mgr
 
         # set listener to deal with missing materials
@@ -364,8 +310,10 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         # for picking
         self.ray_query = scn_mgr.createRayQuery(Ogre.Ray())
 
-        self.imgui_mgr.addFont("SdkTrays/Value", RGN_MESHVIEWER)
-        self.imgui_mgr.init(scn_mgr)
+        imgui_overlay.addFont("SdkTrays/Value", RGN_MESHVIEWER)
+        imgui_overlay.show()
+        OverlayManager.getSingleton().addOverlay(imgui_overlay)
+        imgui_overlay.disown() # owned by OverlayMgr now
 
         shadergen = OgreRTShader.ShaderGenerator.getSingleton()
         shadergen.addSceneManager(scn_mgr)  # must be done before we do anything with the scene
@@ -407,12 +355,12 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.camman.setYawPitchDist(Ogre.Radian(0), Ogre.Radian(0.3), diam)
         self.camman.setFixedYaw(False)
 
-        self.input_dispatcher = InputDispatcher(self.imgui_mgr.getInputListener(), self.camman)
+        self.imgui_input = OgreBites.ImGuiInputListener()
+        self.input_dispatcher = OgreBites.InputListenerChain([self.imgui_input, self.camman])
         self.addInputListener(self.input_dispatcher)
     
     def shutdown(self):
         OgreBites.ApplicationContext.shutdown(self)
-        self.imgui_mgr = None
         
         if self.restart:
             # make sure empty rendersystem is written

@@ -47,7 +47,7 @@ parts:
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-8
         source: https://github.com/OGRECave/ogre.git
-        source-tag: master
+        source-tag: v1.12.3
         build-packages:
             - libxaw7-dev
             - libzzip-dev

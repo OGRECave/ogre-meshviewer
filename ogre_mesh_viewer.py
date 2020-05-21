@@ -9,7 +9,13 @@ import os.path
 RGN_MESHVIEWER = "OgreMeshViewer"
 
 VES2STR = ("ERROR", "Position", "Blend Weights", "Blend Indices", "Normal", "Diffuse", "Specular", "Texcoord", "Binormal", "Tangent")
-VET2STR = ("float", "float2", "float3", "float4", "ERROR", "short", "short2", "short3", "short4", "ubyte4", "argb", "abgr")
+VET2STR = ("float", "float2", "float3", "float4", "ERROR", 
+           "short", "short2", "short3", "short4", "ubyte4", "argb", "abgr", 
+           "double", "double2", "double3", "double4",
+           "ushort", "ushort2", "ushort3", "ushort4",
+           "int", "int2", "int3", "int4",
+           "uint", "uint2", "uint3", "uint4",
+           "byte4", "byte4n", "ubyte4n", "short2n", "short4n", "ushort2n", "ushort4n")
 
 def show_vertex_decl(decl):
     Columns(2)
@@ -22,10 +28,7 @@ def show_vertex_decl(decl):
     for e in decl.getElements():
         Text(VES2STR[e.getSemantic()])
         NextColumn()
-        try:
-            Text(VET2STR[e.getType()])
-        except IndexError:
-            Text("TODO")
+        Text(VET2STR[e.getType()])
         NextColumn()
     Columns(1)
 

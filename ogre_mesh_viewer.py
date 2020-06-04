@@ -176,7 +176,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             self.draw_metrics()
 
         # Mesh Info Sidebar
-        mesh = Ogre.MeshManager.getSingleton().getByName(self.meshname)
+        mesh = self.entity.getMesh()
 
         SetNextWindowPos(ImVec2(0, 30))
         flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove
@@ -252,6 +252,20 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
                         astate.setEnabled(True)
                         astate.setTimePosition(value)
                     TreePop()
+
+        lod_count = mesh.getNumLodLevels()
+        if lod_count > 1 and CollapsingHeader("LOD levels"):
+            self.entity.setMeshLodBias(1) # reset LOD override
+            strategy = mesh.getLodStrategy().getName()
+            curr_idx = self.entity.getCurrentLodIndex()
+            Text("Strategy: {}".format(strategy))
+            for i in range(lod_count):
+                txt = "Base Mesh" if i == 0 else "Level {}: {:.2f}".format(i, mesh.getLodLevel(i).userValue)
+                Bullet()
+                Selectable(txt, i == curr_idx)
+                if IsItemHovered():
+                    # force this LOD level
+                    self.entity.setMeshLodBias(1, i, i)
 
         if CollapsingHeader("Bounds"):
             bounds = mesh.getBounds()

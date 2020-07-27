@@ -54,6 +54,35 @@ class MaterialCreator(Ogre.MeshSerializerListener):
 
     def processMeshCompleted(self, mesh): pass
 
+class LogWindow(Ogre.LogListener):
+    def __init__(self):
+        Ogre.LogListener.__init__(self)
+
+        self.show = False
+        self.items = []
+
+        self.font = None
+    
+    def messageLogged(self, msg, lvl, *args):
+        self.items.append((msg, lvl))
+
+    def draw(self):
+        if not self.show:
+            return
+
+        self.show = Begin("Log", self.show)[1]
+
+        PushFont(self.font)
+        for msg, lvl in self.items:
+            if lvl == 4:
+                PushStyleColor(ImGuiCol_Text, ImVec4(1, 0.4, 0.4, 1))
+            elif lvl == 3:
+                PushStyleColor(ImGuiCol_Text, ImVec4(1, 0.8, 0.4, 1))
+            TextWrapped(msg)
+            if lvl > 2:
+                PopStyleColor()
+        PopFont()
+        End()
 
 class MeshViewerGui(Ogre.RenderTargetListener):
 
@@ -67,6 +96,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         self.highlighted = -1
         self.orig_mat = None
+        self.logwin = app.logwin
 
     def draw_about(self):
         flags = ImGuiWindowFlags_AlwaysAutoResize
@@ -122,6 +152,8 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             if BeginMenu("Help"):
                 if MenuItem("Metrics", None, self.show_metrics):
                     self.show_metrics = not self.show_metrics
+                if MenuItem("Log"):
+                    self.logwin.show = True
                 if MenuItem("About"):
                     self.show_about = True
                 EndMenu()
@@ -236,8 +268,9 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         End()
 
-        # ShowDemoWindow()
+        self.logwin.draw()
 
+        # ShowDemoWindow()
 
 class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
@@ -318,6 +351,16 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         # explicitly add mesh location to be safe
         if not rgm.resourceLocationExists(self.meshdir, Ogre.RGN_DEFAULT):
             rgm.addResourceLocation(self.meshdir, "FileSystem", Ogre.RGN_DEFAULT)
+        
+    def loadResources(self):
+        rgm = Ogre.ResourceGroupManager.getSingleton()
+        rgm.initialiseResourceGroup(Ogre.RGN_INTERNAL)
+        rgm.initialiseResourceGroup(RGN_MESHVIEWER)
+
+        # only capture default group
+        self.logwin = LogWindow()
+        Ogre.LogManager.getSingleton().getDefaultLog().addListener(self.logwin)
+        rgm.initialiseResourceGroup(Ogre.RGN_DEFAULT)
 
     def setup(self):
         OgreBites.ApplicationContext.setup(self)
@@ -340,6 +383,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.ray_query = scn_mgr.createRayQuery(Ogre.Ray())
 
         imgui_overlay.addFont("SdkTrays/Value", RGN_MESHVIEWER)
+        self.logwin.font = GetIO().Fonts.AddFontDefault()
         imgui_overlay.show()
         OverlayManager.getSingleton().addOverlay(imgui_overlay)
         imgui_overlay.disown()  # owned by OverlayMgr now
@@ -392,6 +436,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.addInputListener(self.input_dispatcher)
 
     def shutdown(self):
+        Ogre.LogManager.getSingleton().getDefaultLog().removeListener(self.logwin)
         OgreBites.ApplicationContext.shutdown(self)
 
         if self.restart:

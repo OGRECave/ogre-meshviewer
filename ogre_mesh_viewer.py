@@ -70,6 +70,7 @@ class LogWindow(Ogre.LogListener):
         if not self.show:
             return
 
+        SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver)
         self.show = Begin("Log", self.show)[1]
 
         PushFont(self.font)
@@ -169,6 +170,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         # Mesh Info Sidebar
         mesh = self.entity.getMesh()
 
+        SetNextWindowSize(ImVec2(300, 500), ImGuiCond_FirstUseEver)
         SetNextWindowPos(ImVec2(0, 30))
         flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove
         Begin("MeshProps", None, flags)

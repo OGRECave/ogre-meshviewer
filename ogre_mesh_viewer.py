@@ -43,12 +43,14 @@ class MaterialCreator(Ogre.MeshSerializerListener):
         # ensure some material exists so we can display the name
         mat_mgr = Ogre.MaterialManager.getSingleton()
         if not mat_mgr.resourceExists(name, mesh.getGroup()):
+            lmgr = Ogre.LogManager.getSingleton()
             try:
-                mat_mgr.create(name, mesh.getGroup())
+                mat = mat_mgr.create(name, mesh.getGroup())
+                lmgr.logWarning("could not find material '{}'".format(mat.getName()))
             except RuntimeError:
                 # do not crash if name is ""
                 # this is illegal due to OGRE specs, but we want to show that in the UI
-                pass
+                lmgr.logError("empty material name encountered")
 
     def processSkeletonName(self, mesh, name): pass
 

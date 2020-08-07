@@ -1,5 +1,5 @@
 name: ogre-meshviewer
-version: "20.06"
+version: "20.08"
 confinement: strict
 summary: OGRE Mesh Viewer
 description: Viewer for .mesh model files as consumed by OGRE
@@ -49,6 +49,7 @@ parts:
         source: https://github.com/OGRECave/ogre.git
         source-tag: master
         build-packages:
+            - libassimp-dev
             - libxaw7-dev
             - libzzip-dev
             - libxrandr-dev
@@ -62,6 +63,7 @@ parts:
             - clang-8
             - try: [nvidia-cg-dev]
         stage-packages:
+            - libassimp4
             - libfreetype6
             - libfreeimage3
             - libzzip-0-13

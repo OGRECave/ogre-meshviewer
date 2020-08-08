@@ -66,7 +66,7 @@ class LogWindow(Ogre.LogListener):
         self.font = None
     
     def messageLogged(self, msg, lvl, *args):
-        self.items.append((msg, lvl))
+        self.items.append((msg.replace("%", "%%"), lvl))
 
     def draw(self):
         if not self.show:

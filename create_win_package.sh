@@ -23,10 +23,11 @@ cp bin/SDL2.dll bin/zlib.dll package
 # write plugins.cfg
 head -10 bin/plugins.cfg > package/plugins.cfg
 echo Plugin=Codec_STBI >> package/plugins.cfg
+echo Plugin=Codec_Assimp >> package/plugins.cfg
 
 # resources
 cp win_resources.cfg package/resources.cfg
 cp -R Media/RTShaderLib Media/ShadowVolume package/
 cp -R Media/packs/SdkTrays.zip package/
 
-mv package ogre-meshviewer_20.06-win64
+mv package ogre-meshviewer_20.08-win64

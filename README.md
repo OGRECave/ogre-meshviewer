@@ -2,7 +2,7 @@
 
 <a href="https://www.patreon.com/ogre1" target="_blank" ><img src="https://www.ogre3d.org/wp-content/uploads/2018/10/become_a_patron_button.png" width=135px></a>
 
-Viewer for `.mesh` model files as consumed by OGRE
+Viewer for `.mesh` model files as consumed by OGRE as well as any format [supported by assimp](https://github.com/assimp/assimp/blob/master/doc/Fileformats.md) like `.obj`, `.ply` or `.fbx`.
 
 ![](screenshot.jpg)
 

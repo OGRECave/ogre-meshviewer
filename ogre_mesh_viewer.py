@@ -95,7 +95,6 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         self.show_metrics = False
 
         self.app = app
-        self.entity = app.entity
 
         self.highlighted = -1
         self.orig_mat = None
@@ -126,11 +125,28 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         Text("Triangles: {}".format(stats.triangleCount))
         End()
 
+    def draw_loading(self):
+        win = self.app.getRenderWindow()
+        SetNextWindowPos(ImVec2(win.getWidth() * 0.5, win.getHeight() * 0.5), 0, ImVec2(0.5, 0.5))
+
+        flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings
+        Begin("Loading", True, flags)
+        Text(self.app.meshname)
+        Separator()
+        Text("Loading..            ")
+        End()
+
     def preRenderTargetUpdate(self, evt):
         if not self.app.cam.getViewport().getOverlaysEnabled():
             return
 
         ImGuiOverlay.NewFrame()
+
+        entity = self.app.entity
+
+        if entity is None:
+            self.draw_loading()
+            return
 
         if BeginMainMenuBar():
             if BeginMenu("File"):
@@ -143,13 +159,13 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     self.app.getRoot().queueEndRendering()
                 EndMenu()
             if BeginMenu("View"):
-                enode = self.entity.getParentSceneNode()
+                enode = entity.getParentSceneNode()
                 if MenuItem("Show Axes", "A", self.app.axes.getVisible()):
                     self.app._toggle_axes()
                 if MenuItem("Show Bounding Box", "B", enode.getShowBoundingBox()):
                     self.app._toggle_bbox()
-                if self.entity.hasSkeleton() and MenuItem("Show Skeleton", None, self.entity.getDisplaySkeleton()):
-                    self.entity.setDisplaySkeleton(not self.entity.getDisplaySkeleton())
+                if entity.hasSkeleton() and MenuItem("Show Skeleton", None, entity.getDisplaySkeleton()):
+                    entity.setDisplaySkeleton(not entity.getDisplaySkeleton())
                 EndMenu()
 
             if BeginMenu("Help"):
@@ -170,7 +186,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             self.draw_metrics()
 
         # Mesh Info Sidebar
-        mesh = self.entity.getMesh()
+        mesh = entity.getMesh()
 
         SetNextWindowSize(ImVec2(300, 500), ImGuiCond_FirstUseEver)
         SetNextWindowPos(ImVec2(0, 30))
@@ -210,18 +226,18 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     TreePop()
 
         if self.highlighted > -1:
-            self.entity.getSubEntities()[self.highlighted].setMaterialName(self.orig_mat)
+            entity.getSubEntities()[self.highlighted].setMaterialName(self.orig_mat)
 
         if highlight > -1:
-            self.orig_mat = self.entity.getSubEntities()[highlight].getMaterial().getName()
-            self.entity.getSubEntities()[highlight].setMaterial(self.app.highlight_mat)
+            self.orig_mat = entity.getSubEntities()[highlight].getMaterial().getName()
+            entity.getSubEntities()[highlight].setMaterial(self.app.highlight_mat)
             self.highlighted = highlight
 
-        animations = self.entity.getAllAnimationStates()
+        animations = entity.getAllAnimationStates()
         if animations is not None and CollapsingHeader("Animations"):
             controller_mgr = Ogre.ControllerManager.getSingleton()
 
-            if self.entity.hasSkeleton():
+            if entity.hasSkeleton():
                 Text("Skeleton: {}".format(mesh.getSkeletonName()))
                 # self.entity.setUpdateBoundingBoxFromSkeleton(True)
             if mesh.hasVertexAnimation():
@@ -250,9 +266,9 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         lod_count = mesh.getNumLodLevels()
         if lod_count > 1 and CollapsingHeader("LOD levels"):
-            self.entity.setMeshLodBias(1)  # reset LOD override
+            entity.setMeshLodBias(1)  # reset LOD override
             strategy = mesh.getLodStrategy().getName()
-            curr_idx = self.entity.getCurrentLodIndex()
+            curr_idx = entity.getCurrentLodIndex()
             Text("Strategy: {}".format(strategy))
             for i in range(lod_count):
                 txt = "Base Mesh" if i == 0 else "Level {}: {:.2f}".format(i, mesh.getLodLevel(i).userValue)
@@ -260,7 +276,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                 Selectable(txt, i == curr_idx)
                 if IsItemHovered():
                     # force this LOD level
-                    self.entity.setMeshLodBias(1, i, i)
+                    entity.setMeshLodBias(1, i, i)
 
         if CollapsingHeader("Bounds"):
             bounds = mesh.getBounds()
@@ -286,6 +302,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.meshdir = os.path.dirname(meshname)
         self.rescfg = rescfg
 
+        self.entity = None
         self.highlight_mat = None
         self.restart = False
 
@@ -400,13 +417,24 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.highlight_mat = Ogre.MaterialManager.getSingleton().create("Highlight", RGN_MESHVIEWER)
         self.highlight_mat.getTechniques()[0].getPasses()[0].setEmissive(Ogre.ColourValue(1, 1, 0))
 
-        self.entity = scn_mgr.createEntity(self.meshname)
-        scn_mgr.getRootSceneNode().createChildSceneNode().attachObject(self.entity)
+        self.cam = scn_mgr.createCamera("myCam")
+        self.cam.setAutoAspectRatio(True)
+        camnode = scn_mgr.getRootSceneNode().createChildSceneNode()
+        camnode.attachObject(self.cam)
+
+        vp = self.getRenderWindow().addViewport(self.cam)
+        vp.setBackgroundColour(Ogre.ColourValue(.3, .3, .3))
 
         self.gui = MeshViewerGui(self)
         self.getRenderWindow().addListener(self.gui)
 
+        self.getRoot().renderOneFrame()
+        self.getRoot().renderOneFrame()
+        self.entity = scn_mgr.createEntity(self.meshname)
+        scn_mgr.getRootSceneNode().createChildSceneNode().attachObject(self.entity)
+
         diam = self.entity.getBoundingBox().getSize().length()
+        self.cam.setNearClipDistance(diam * 0.01)
 
         axes_node = scn_mgr.getRootSceneNode().createChildSceneNode()
         axes_node.getDebugRenderable()  # make sure Ogre/Debug/AxesMesh is created
@@ -416,19 +444,10 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.axes.setVisible(False)
         self.axes.setQueryFlags(0)  # exclude from picking
 
-        self.cam = scn_mgr.createCamera("myCam")
-        self.cam.setNearClipDistance(diam * 0.01)
-        self.cam.setAutoAspectRatio(True)
-        camnode = scn_mgr.getRootSceneNode().createChildSceneNode()
-        camnode.attachObject(self.cam)
-
         light = scn_mgr.createLight("MainLight")
         light.setType(Ogre.Light.LT_DIRECTIONAL)
         light.setSpecularColour(Ogre.ColourValue.White)
         camnode.attachObject(light)
-
-        vp = self.getRenderWindow().addViewport(self.cam)
-        vp.setBackgroundColour(Ogre.ColourValue(.3, .3, .3))
 
         self.camman = OgreBites.CameraMan(camnode)
         self.camman.setStyle(OgreBites.CS_ORBIT)

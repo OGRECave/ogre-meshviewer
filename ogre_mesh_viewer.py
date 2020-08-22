@@ -17,6 +17,7 @@ VET2STR = ("float", "float2", "float3", "float4", "ERROR",
            "uint", "uint2", "uint3", "uint4",
            "byte4", "byte4n", "ubyte4n", "short2n", "short4n", "ushort2n", "ushort4n")
 
+ROP2STR = ("ERROR", "Point List", "Line List", "Line Strip", "Triangle List", "Triangle Strip", "Triangle Fan")
 
 def show_vertex_decl(decl):
     Columns(2)
@@ -211,6 +212,9 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
                 if submesh_details:
                     BulletText("Material: {}".format(sm.getMaterialName()))
+                    op = ROP2STR[sm.operationType] if sm.operationType <= 6 else "Control Points"
+                    BulletText("Operation: {}".format(op))
+
                     if sm.indexData:
                         bits = sm.indexData.indexBuffer.getIndexSize() * 8
                         BulletText("Indices: {} ({} bit)".format(sm.indexData.indexCount, bits))

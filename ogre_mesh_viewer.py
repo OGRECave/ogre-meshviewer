@@ -466,6 +466,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         Ogre.LogManager.getSingleton().getDefaultLog().removeListener(self.logwin)
         OgreBites.ApplicationContext.shutdown(self)
 
+        self.entity = None
         if self.restart:
             # make sure empty rendersystem is written
             self.getRoot().shutdown()

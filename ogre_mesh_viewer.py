@@ -161,7 +161,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                 EndMenu()
             if BeginMenu("View"):
                 enode = entity.getParentSceneNode()
-                if MenuItem("Show Axes", "A", self.app.axes.getVisible()):
+                if MenuItem("Show Axes", "A", self.app.axes_visible):
                     self.app._toggle_axes()
                 if MenuItem("Show Bounding Box", "B", enode.getShowBoundingBox()):
                     self.app._toggle_bbox()
@@ -309,6 +309,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.entity = None
         self.highlight_mat = None
         self.restart = False
+        self.axes_visible = False
 
         self.active_controllers = {}
 
@@ -340,7 +341,12 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         enode.showBoundingBox(not enode.getShowBoundingBox())
 
     def _toggle_axes(self):
-        self.axes.setVisible(not self.axes.getVisible())
+        if not self.axes_visible:
+            self.scn_mgr.addListener(self.axes)
+        else:
+            self.scn_mgr.removeListener(self.axes)
+        
+        self.axes_visible = not self.axes_visible
 
     def _save_screenshot(self):
         name = os.path.splitext(self.meshname)[0]
@@ -440,13 +446,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         diam = self.entity.getBoundingBox().getSize().length()
         self.cam.setNearClipDistance(diam * 0.01)
 
-        axes_node = scn_mgr.getRootSceneNode().createChildSceneNode()
-        axes_node.getDebugRenderable()  # make sure Ogre/Debug/AxesMesh is created
-        self.axes = scn_mgr.createEntity("Ogre/Debug/AxesMesh")
-        axes_node.attachObject(self.axes)
-        axes_node.setScale(Ogre.Vector3(diam / 4))
-        self.axes.setVisible(False)
-        self.axes.setQueryFlags(0)  # exclude from picking
+        self.axes = Ogre.DefaultDebugDrawer()
+        self.axes.setStatic(True)
+        self.axes.drawAxes(Ogre.Affine3.IDENTITY, diam / 4)
 
         light = scn_mgr.createLight("MainLight")
         light.setType(Ogre.Light.LT_DIRECTIONAL)

@@ -469,6 +469,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         OgreBites.ApplicationContext.shutdown(self)
 
         self.entity = None
+        self.axes = None
         if self.restart:
             # make sure empty rendersystem is written
             self.getRoot().shutdown()

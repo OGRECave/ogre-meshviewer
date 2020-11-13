@@ -215,7 +215,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     op = ROP2STR[sm.operationType] if sm.operationType <= 6 else "Control Points"
                     BulletText("Operation: {}".format(op))
 
-                    if sm.indexData:
+                    if sm.indexData.indexCount:
                         bits = sm.indexData.indexBuffer.getIndexSize() * 8
                         BulletText("Indices: {} ({} bit)".format(sm.indexData.indexCount, bits))
                     else:

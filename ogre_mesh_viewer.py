@@ -51,7 +51,7 @@ class MaterialCreator(Ogre.MeshSerializerListener):
             except RuntimeError:
                 # do not crash if name is ""
                 # this is illegal due to OGRE specs, but we want to show that in the UI
-                lmgr.logError("empty material name encountered")
+                lmgr.logError("sub-mesh uses empty material name")
 
     def processSkeletonName(self, mesh, name): pass
 

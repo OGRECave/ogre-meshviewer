@@ -135,7 +135,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         flags = ImGui.ImGuiWindowFlags_NoTitleBar | ImGui.ImGuiWindowFlags_NoResize | ImGui.ImGuiWindowFlags_NoSavedSettings
         ImGui.Begin("Loading", True, flags)
-        ImGui.Text(self.app.meshname)
+        ImGui.Text(self.app.filename)
         ImGui.Separator()
         ImGui.Text("Loading..            ")
         ImGui.End()
@@ -188,6 +188,10 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         if self.show_metrics:
             self.draw_metrics()
+
+        if self.app.attach_node is not None:
+            # no sidebar yet when loading .scene
+            return
 
         # Mesh Info Sidebar
         mesh = entity.getMesh()
@@ -297,19 +301,20 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         self.logwin.draw()
 
-        # ShowDemoWindow()
+        # ImGui.ShowDemoWindow()
 
 class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
-    def __init__(self, meshname, rescfg):
+    def __init__(self, infile, rescfg):
         OgreBites.ApplicationContext.__init__(self, "OgreMeshViewer")
         OgreBites.InputListener.__init__(self)
 
-        self.meshname = os.path.basename(meshname)
-        self.meshdir = os.path.dirname(meshname)
+        self.filename = os.path.basename(infile)
+        self.filedir = os.path.dirname(infile)
         self.rescfg = rescfg
 
         self.entity = None
+        self.attach_node = None
         self.highlight_mat = None
         self.restart = False
         self.axes_visible = False
@@ -340,6 +345,11 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         return True
 
     def _toggle_bbox(self):
+        if self.attach_node is not None:
+            show = self.attach_node.getCreator().getShowBoundingBoxes()
+            self.attach_node.getCreator().showBoundingBoxes(not show)
+            return
+
         enode = self.entity.getParentSceneNode()
         enode.showBoundingBox(not enode.getShowBoundingBox())
 
@@ -352,8 +362,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.axes_visible = not self.axes_visible
 
     def _save_screenshot(self):
-        name = os.path.splitext(self.meshname)[0]
-        outpath = os.path.join(self.meshdir, "screenshot_{}_".format(name))
+        name = os.path.splitext(self.filename)[0]
+        outpath = os.path.join(self.filedir, "screenshot_{}_".format(name))
 
         self.cam.getViewport().setOverlaysEnabled(False)
         self.getRoot().renderOneFrame()
@@ -383,8 +393,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
                     rgm.addResourceLocation(loc, kind, sec)
 
         # explicitly add mesh location to be safe
-        if not rgm.resourceLocationExists(self.meshdir, Ogre.RGN_DEFAULT):
-            rgm.addResourceLocation(self.meshdir, "FileSystem", Ogre.RGN_DEFAULT)
+        if not rgm.resourceLocationExists(self.filedir, Ogre.RGN_DEFAULT):
+            rgm.addResourceLocation(self.filedir, "FileSystem", Ogre.RGN_DEFAULT)
         
     def loadResources(self):
         rgm = Ogre.ResourceGroupManager.getSingleton()
@@ -425,10 +435,10 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         shadergen = OgreRTShader.ShaderGenerator.getSingleton()
         shadergen.addSceneManager(scn_mgr)  # must be done before we do anything with the scene
 
-        scn_mgr.setAmbientLight(Ogre.ColourValue(.1, .1, .1))
+        scn_mgr.setAmbientLight((.1, .1, .1))
 
         self.highlight_mat = Ogre.MaterialManager.getSingleton().create("Highlight", RGN_MESHVIEWER)
-        self.highlight_mat.getTechniques()[0].getPasses()[0].setEmissive(Ogre.ColourValue(1, 1, 0))
+        self.highlight_mat.getTechniques()[0].getPasses()[0].setEmissive((1, 1, 0))
 
         self.cam = scn_mgr.createCamera("myCam")
         self.cam.setAutoAspectRatio(True)
@@ -436,17 +446,27 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         camnode.attachObject(self.cam)
 
         vp = self.getRenderWindow().addViewport(self.cam)
-        vp.setBackgroundColour(Ogre.ColourValue(.3, .3, .3))
+        vp.setBackgroundColour((.3, .3, .3))
 
         self.gui = MeshViewerGui(self)
         self.getRenderWindow().addListener(self.gui)
 
         self.getRoot().renderOneFrame()
         self.getRoot().renderOneFrame()
-        self.entity = scn_mgr.createEntity(self.meshname)
-        scn_mgr.getRootSceneNode().createChildSceneNode().attachObject(self.entity)
 
-        diam = self.entity.getBoundingBox().getSize().length()
+        if self.filename.lower().endswith(".scene"):
+            self.attach_node = scn_mgr.getRootSceneNode().createChildSceneNode()
+            self.attach_node.loadChildren(self.filename)
+
+            self.attach_node._update(True, False)
+            diam = self.attach_node._getWorldAABB().getSize().length()
+            # pick first entity
+            self.entity = scn_mgr.getMovableObjects("Entity").values()[0].castEntity()
+        else:
+            self.entity = scn_mgr.createEntity(self.filename)
+            scn_mgr.getRootSceneNode().createChildSceneNode().attachObject(self.entity)
+            diam = self.entity.getBoundingBox().getSize().length()
+
         self.cam.setNearClipDistance(diam * 0.01)
 
         self.axes = Ogre.DefaultDebugDrawer()
@@ -460,7 +480,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         self.camman = OgreBites.CameraMan(camnode)
         self.camman.setStyle(OgreBites.CS_ORBIT)
-        self.camman.setYawPitchDist(Ogre.Radian(0), Ogre.Radian(0.3), diam)
+        self.camman.setYawPitchDist(0, 0.3, diam)
         self.camman.setFixedYaw(False)
 
         self.imgui_input = OgreBites.ImGuiInputListener()
@@ -483,10 +503,10 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Ogre Mesh Viewer")
-    parser.add_argument("meshfile", help="path to a .mesh")
+    parser.add_argument("infile", help="path to a ogre .mesh, ogre .scene or any format supported by assimp")
     parser.add_argument("-c", "--rescfg", help="path to the resources.cfg")
     args = parser.parse_args()
-    app = MeshViewer(args.meshfile, args.rescfg)
+    app = MeshViewer(args.infile, args.rescfg)
 
     while True:  # allow auto restart
         app.initApp()

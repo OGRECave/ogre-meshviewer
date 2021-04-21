@@ -59,6 +59,7 @@ parts:
             - libgles2-mesa-dev
             - libsdl2-dev
             - libpython3-dev
+            - libpugixml-dev
             - swig3.0
             - clang-8
             - try: [nvidia-cg-dev]
@@ -70,6 +71,7 @@ parts:
             - libsdl2-2.0-0
             - python3
             - libpython3.6
+            - libpugixml1v5
             - libxaw7
             - libxt6
             - try: [libcggl]

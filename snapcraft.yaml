@@ -1,5 +1,5 @@
 name: ogre-meshviewer
-version: "20.12"
+version: "21.04"
 confinement: strict
 summary: OGRE Mesh Viewer
 description: Viewer for .mesh model files as consumed by OGRE
@@ -26,6 +26,9 @@ parts:
             - -DOGRE_BUILD_RENDERSYSTEM_GL=TRUE
             - -DOGRE_BUILD_RENDERSYSTEM_GLES2=TRUE
             - -DOGRE_BUILD_COMPONENT_PYTHON=TRUE
+            - -DOGRE_BUILD_PLUGIN_DOT_SCENE=TRUE
+            - -DOGRE_BUILD_COMPONENT_TERRAIN=TRUE
+            - -DOGRE_BUILD_COMPONENT_PAGING=TRUE
             - -DPYTHON_EXECUTABLE=/usr/bin/python3
             # stuff we dont need for the viewer
             - -DOGRE_BUILD_TOOLS=FALSE
@@ -35,19 +38,16 @@ parts:
             - -DOGRE_BUILD_PLUGIN_BSP=FALSE
             - -DOGRE_BUILD_PLUGIN_PCZ=FALSE
             - -DOGRE_BUILD_PLUGIN_OCTREE=FALSE
-            - -DOGRE_BUILD_PLUGIN_DOT_SCENE=FALSE
             - -DOGRE_BUILD_COMPONENT_JAVA=FALSE
             - -DOGRE_BUILD_COMPONENT_CSHARP=FALSE
             - -DOGRE_BUILD_COMPONENT_VOLUME=FALSE
-            - -DOGRE_BUILD_COMPONENT_TERRAIN=FALSE
-            - -DOGRE_BUILD_COMPONENT_PAGING=FALSE
             - -DOGRE_BUILD_COMPONENT_PROPERTY=FALSE
             - -DOGRE_BUILD_COMPONENT_HLMS=FALSE
             - -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=FALSE
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-8
         source: https://github.com/OGRECave/ogre.git
-        source-tag: v1.12.10
+        source-tag: v1.12.12
         build-packages:
             - libassimp-dev
             - libxaw7-dev

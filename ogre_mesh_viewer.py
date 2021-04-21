@@ -473,10 +473,12 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.axes.setStatic(True)
         self.axes.drawAxes(Ogre.Affine3.IDENTITY, diam / 4)
 
-        light = scn_mgr.createLight("MainLight")
-        light.setType(Ogre.Light.LT_DIRECTIONAL)
-        light.setSpecularColour(Ogre.ColourValue.White)
-        camnode.attachObject(light)
+        if len(scn_mgr.getMovableObjects("Light")) == 0:
+            # skip creating light, if scene already contains one
+            light = scn_mgr.createLight("MainLight")
+            light.setType(Ogre.Light.LT_DIRECTIONAL)
+            light.setSpecularColour(Ogre.ColourValue.White)
+            camnode.attachObject(light)
 
         self.camman = OgreBites.CameraMan(camnode)
         self.camman.setStyle(OgreBites.CS_ORBIT)

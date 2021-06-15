@@ -189,6 +189,8 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         if self.show_metrics:
             self.draw_metrics()
 
+        self.logwin.draw()
+
         if self.app.attach_node is not None:
             # no sidebar yet when loading .scene
             return
@@ -298,8 +300,6 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             ImGui.BulletText("Radius: {:.2f}".format(mesh.getBoundingSphereRadius()))
 
         ImGui.End()
-
-        self.logwin.draw()
 
         # ImGui.ShowDemoWindow()
 

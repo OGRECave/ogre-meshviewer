@@ -148,7 +148,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         entity = self.app.entity
 
-        if entity is None:
+        if entity is None and self.app.attach_node is None:
             self.draw_loading()
             return
 
@@ -440,7 +440,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.highlight_mat = Ogre.MaterialManager.getSingleton().create("Highlight", RGN_MESHVIEWER)
         self.highlight_mat.getTechniques()[0].getPasses()[0].setEmissive((1, 1, 0))
 
-        self.cam = scn_mgr.createCamera("myCam")
+        main_cam_name = "MeshViewer/Cam"
+        self.cam = scn_mgr.createCamera(main_cam_name)
         self.cam.setAutoAspectRatio(True)
         camnode = scn_mgr.getRootSceneNode().createChildSceneNode()
         camnode.attachObject(self.cam)
@@ -460,8 +461,14 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
             self.attach_node._update(True, False)
             diam = self.attach_node._getWorldAABB().getSize().length()
-            # pick first entity
-            self.entity = scn_mgr.getMovableObjects("Entity").values()[0].castEntity()
+
+            for c in scn_mgr.getCameras().values():
+                if c.getName() == main_cam_name:
+                    continue
+                # the camera frustum of any contained camera blows the above heuristic
+                # so use the camera position instead
+                diam = c.getDerivedPosition().length()
+                break
         else:
             self.entity = scn_mgr.createEntity(self.filename)
             scn_mgr.getRootSceneNode().createChildSceneNode().attachObject(self.entity)

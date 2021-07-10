@@ -74,6 +74,8 @@ parts:
             - libpugixml1v5
             - libxaw7
             - libxt6
+            - libgl1
+            - libgles2
             - try: [libcggl]
         stage:
             - -usr/share/OGRE/Media/volumeTerrain

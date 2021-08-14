@@ -3,7 +3,7 @@
 # This should work on Windows (MinGW) and Linux
 # for MinGW use e.g. https://gitforwindows.org/
 
-curl -L https://dl.cloudsmith.io/public/ogrecave/ogre/raw/files/ogre-sdk-master-vc15-x64.zip -o ogre-sdk.zip
+curl -L https://dl.cloudsmith.io/public/ogrecave/ogre/raw/files/ogre-sdk-v13.0.0-msvc141-x64.zip -o ogre-sdk.zip
 curl -LO https://www.python.org/ftp/python/3.7.9/python-3.7.9-embed-amd64.zip
 unzip python-3.7.9-embed-amd64.zip -d package
 unzip ogre-sdk.zip
@@ -31,4 +31,4 @@ cp win_resources.cfg package/resources.cfg
 cp -R Media/RTShaderLib Media/ShadowVolume package/
 cp -R Media/packs/SdkTrays.zip package/
 
-mv package ogre-meshviewer_21.06-win64
+mv package ogre-meshviewer_21.08-win64

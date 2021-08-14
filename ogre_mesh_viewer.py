@@ -3,7 +3,7 @@ import Ogre.RTShader as OgreRTShader
 import Ogre.Bites as OgreBites
 import Ogre.Overlay
 
-import Ogre.Overlay as ImGui
+import Ogre.ImGui as ImGui
 
 import os.path
 

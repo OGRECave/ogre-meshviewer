@@ -162,7 +162,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                 if ImGui.MenuItem("Quit", "Esc"):
                     self.app.getRoot().queueEndRendering()
                 ImGui.EndMenu()
-            if ImGui.BeginMenu("View"):
+            if entity is not None and ImGui.BeginMenu("View"):
                 enode = entity.getParentSceneNode()
                 if ImGui.MenuItem("Show Axes", "A", self.app.axes_visible):
                     self.app._toggle_axes()

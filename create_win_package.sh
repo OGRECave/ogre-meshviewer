@@ -28,7 +28,7 @@ echo Plugin=Plugin_DotScene >> package/plugins.cfg
 
 # resources
 cp win_resources.cfg package/resources.cfg
-cp -R Media/RTShaderLib Media/ShadowVolume package/
+cp -R Media/RTShaderLib Media/Main package/
 cp -R Media/packs/SdkTrays.zip package/
 
 mv package ogre-meshviewer_21.08-win64

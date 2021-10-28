@@ -198,8 +198,8 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         # Mesh Info Sidebar
         mesh = entity.getMesh()
 
-        ImGui.SetNextWindowSize(ImGui.ImVec2(300, 500), ImGui.ImGuiCond_FirstUseEver)
-        ImGui.SetNextWindowPos(ImGui.ImVec2(0, 30))
+        ImGui.SetNextWindowSize(ImGui.ImVec2(300, ImGui.GetFontSize()*25), ImGui.ImGuiCond_FirstUseEver)
+        ImGui.SetNextWindowPos(ImGui.ImVec2(0, ImGui.GetFontSize()*1.5))
         flags = ImGui.ImGuiWindowFlags_NoTitleBar | ImGui.ImGuiWindowFlags_NoMove
         ImGui.Begin("MeshProps", None, flags)
         ImGui.Text(mesh.getName())
@@ -423,11 +423,18 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.mat_creator = MaterialCreator()
         Ogre.MeshManager.getSingleton().setListener(self.mat_creator)
 
+        # HiDPI
+        pixel_ratio = self.getDisplayDPI() / 96
+        Ogre.Overlay.OverlayManager.getSingleton().setPixelRatio(pixel_ratio)
+        ImGui.GetStyle().ScaleAllSizes(pixel_ratio)
+
         # for picking
         self.ray_query = scn_mgr.createRayQuery(Ogre.Ray())
 
         imgui_overlay.addFont("SdkTrays/Value", RGN_MESHVIEWER)
         self.logwin.font = ImGui.GetIO().Fonts.AddFontDefault()
+        self.logwin.font.Scale = round(pixel_ratio)
+
         imgui_overlay.show()
         Ogre.Overlay.OverlayManager.getSingleton().addOverlay(imgui_overlay)
         imgui_overlay.disown()  # owned by OverlayMgr now

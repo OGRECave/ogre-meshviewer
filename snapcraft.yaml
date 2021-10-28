@@ -1,5 +1,5 @@
 name: ogre-meshviewer
-version: "21.08"
+version: "21.10"
 confinement: strict
 summary: OGRE Mesh Viewer
 description: Viewer for .mesh model files as consumed by OGRE
@@ -44,7 +44,7 @@ parts:
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-8
         source: https://github.com/OGRECave/ogre.git
-        source-tag: v13.0.0
+        source-tag: master
         build-packages:
             - libassimp-dev
             - libxaw7-dev

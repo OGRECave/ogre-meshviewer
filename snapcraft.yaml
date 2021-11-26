@@ -1,14 +1,16 @@
 name: ogre-meshviewer
-version: "21.10"
+version: "21.11"
 confinement: strict
 summary: OGRE Mesh Viewer
 description: Viewer for .mesh model files as consumed by OGRE
-base: core18
+base: core20
 
 apps:
     ogre-meshviewer:
-        command: desktop-launch python3 $SNAP/bin/ogre_mesh_viewer.py
+        command: bin/desktop-launch python3 $SNAP/bin/ogre_mesh_viewer.py
         plugs: [home, opengl, x11, removable-media]
+        environment:
+            PYTHONPATH: $SNAP/usr/lib/python3.8/dist-packages/
 parts:
     desktop-glib-only:
         source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
@@ -16,7 +18,7 @@ parts:
         plugin: make
     ogre:
         plugin: cmake
-        configflags:
+        cmake-parameters:
             - -DCMAKE_BUILD_TYPE=Release
             - -DOGRE_BUILD_DEPENDENCIES=FALSE
             - -DOGRE_BUILD_RENDERSYSTEM_GL3PLUS=TRUE
@@ -42,9 +44,10 @@ parts:
             - -DOGRE_BUILD_COMPONENT_HLMS=FALSE
             - -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=FALSE
             - -DCMAKE_INSTALL_PREFIX=/usr/
-            - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-8
+            - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-12
         source: https://github.com/OGRECave/ogre.git
         source-tag: master
+        source-depth: 1
         build-packages:
             - libassimp-dev
             - libxaw7-dev
@@ -57,20 +60,21 @@ parts:
             - libpython3-dev
             - libpugixml-dev
             - swig3.0
-            - clang-8
+            - clang-12
             - try: [nvidia-cg-dev]
         stage-packages:
-            - libassimp4
+            - libassimp5
             - libfreetype6
             - libfreeimage3
             - libsdl2-2.0-0
             - python3
-            - libpython3.6
+            - libpython3.8
             - libpugixml1v5
             - libxaw7
             - libxt6
             - libgl1
             - libgles2
+            - libegl1
             - try: [libcggl]
         stage:
             - -usr/share/OGRE/Media/volumeTerrain

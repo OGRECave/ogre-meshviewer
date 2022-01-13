@@ -31,4 +31,4 @@ cp win_resources.cfg package/resources.cfg
 cp -R Media/RTShaderLib Media/Main package/
 cp -R Media/packs/SdkTrays.zip package/
 
-mv package ogre-meshviewer_21.10-win64
+mv package ogre-meshviewer_22.01-win64

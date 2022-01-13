@@ -525,8 +525,11 @@ if __name__ == "__main__":
     app = MeshViewer(args.infile, args.rescfg)
 
     while True:  # allow auto restart
-        app.initApp()
-        app.getRoot().startRendering()
-        app.closeApp()
+        try:
+            app.initApp()
+            app.getRoot().startRendering()
+            app.closeApp()
+        except RuntimeError as e:
+            Ogre.LogManager.getSingleton().logMessage(str(e))
 
         if not app.restart: break

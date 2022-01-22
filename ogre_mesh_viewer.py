@@ -35,6 +35,8 @@ def show_vertex_decl(decl):
         ImGui.NextColumn()
     ImGui.Columns(1)
 
+def printable(str):
+    return str.encode("utf-8", "replace").decode()
 
 class MaterialCreator(Ogre.MeshSerializerListener):
 
@@ -48,7 +50,7 @@ class MaterialCreator(Ogre.MeshSerializerListener):
             lmgr = Ogre.LogManager.getSingleton()
             try:
                 mat = mat_mgr.create(name, mesh.getGroup())
-                lmgr.logWarning("could not find material '{}'".format(mat.getName()))
+                lmgr.logWarning("could not find material '{}'".format(printable(mat.getName())))
             except RuntimeError:
                 # do not crash if name is ""
                 # this is illegal due to OGRE specs, but we want to show that in the UI
@@ -68,7 +70,7 @@ class LogWindow(Ogre.LogListener):
         self.font = None
     
     def messageLogged(self, msg, lvl, *args):
-        self.items.append((msg.replace("%", "%%"), lvl))
+        self.items.append((printable(msg.replace("%", "%%")), lvl))
 
     def draw(self):
         if not self.show:
@@ -220,7 +222,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     highlight = i
 
                 if submesh_details:
-                    ImGui.BulletText("Material: {}".format(sm.getMaterialName()))
+                    ImGui.BulletText("Material: {}".format(printable(sm.getMaterialName())))
                     op = ROP2STR[sm.operationType] if sm.operationType <= 6 else "Control Points"
                     ImGui.BulletText("Operation: {}".format(op))
 
@@ -242,7 +244,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             entity.getSubEntities()[self.highlighted].setMaterialName(self.orig_mat)
 
         if highlight > -1:
-            self.orig_mat = entity.getSubEntities()[highlight].getMaterial().getName()
+            self.orig_mat = printable(entity.getSubEntities()[highlight].getMaterial().getName())
             entity.getSubEntities()[highlight].setMaterial(self.app.highlight_mat)
             self.highlighted = highlight
 

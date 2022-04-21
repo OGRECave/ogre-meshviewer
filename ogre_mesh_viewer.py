@@ -16,7 +16,7 @@ VET2STR = ("float", "float2", "float3", "float4", "ERROR",
            "ushort", "ushort2", "ushort3", "ushort4",
            "int", "int2", "int3", "int4",
            "uint", "uint2", "uint3", "uint4",
-           "byte4", "byte4n", "ubyte4n", "short2n", "short4n", "ushort2n", "ushort4n")
+           "byte4", "byte4n", "ubyte4n", "short2n", "short4n", "ushort2n", "ushort4n", "int1010102n")
 
 ROP2STR = ("ERROR", "Point List", "Line List", "Line Strip", "Triangle List", "Triangle Strip", "Triangle Fan")
 

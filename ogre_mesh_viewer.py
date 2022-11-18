@@ -21,19 +21,23 @@ VET2STR = ("float", "float2", "float3", "float4", "ERROR",
 ROP2STR = ("ERROR", "Point List", "Line List", "Line Strip", "Triangle List", "Triangle Strip", "Triangle Fan")
 
 def show_vertex_decl(decl):
-    ImGui.Columns(2)
-    ImGui.Text("Semantic")
-    ImGui.NextColumn()
-    ImGui.Text("Type")
-    ImGui.NextColumn()
-    ImGui.Separator()
+    flags = ImGui.ImGuiTableFlags_Borders | ImGui.ImGuiTableFlags_SizingStretchProp
+    if not ImGui.BeginTable("vertexDecl", 3, flags):
+        return
+    ImGui.TableSetupColumn("Semantic")
+    ImGui.TableSetupColumn("Type")
+    ImGui.TableSetupColumn("Buffer")
+    ImGui.TableHeadersRow()
 
     for e in decl.getElements():
+        ImGui.TableNextRow()
+        ImGui.TableNextColumn()
         ImGui.Text(VES2STR[e.getSemantic()])
-        ImGui.NextColumn()
+        ImGui.TableNextColumn()
         ImGui.Text(VET2STR[e.getType()])
-        ImGui.NextColumn()
-    ImGui.Columns(1)
+        ImGui.TableNextColumn()
+        ImGui.Text(str(e.getSource()))
+    ImGui.EndTable()
 
 def printable(str):
     return str.encode("utf-8", "replace").decode()

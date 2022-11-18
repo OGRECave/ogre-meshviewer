@@ -59,7 +59,7 @@ parts:
             - libsdl2-dev
             - libpython3-dev
             - libpugixml-dev
-            - swig3.0
+            - swig4.0
             - clang-12
             - try: [nvidia-cg-dev]
         stage-packages:

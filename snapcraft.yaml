@@ -1,5 +1,5 @@
 name: ogre-meshviewer
-version: "22.11"
+version: "22.12"
 confinement: strict
 summary: OGRE Mesh Viewer
 description: Viewer for .mesh model files as consumed by OGRE
@@ -24,6 +24,7 @@ parts:
             - -DOGRE_BUILD_RENDERSYSTEM_GL3PLUS=TRUE
             - -DOGRE_BUILD_RENDERSYSTEM_GL=TRUE
             - -DOGRE_BUILD_RENDERSYSTEM_GLES2=TRUE
+            - -DOGRE_BUILD_PLUGIN_RSIMAGE=TRUE 
             - -DOGRE_BUILD_COMPONENT_PYTHON=TRUE
             - -DOGRE_BUILD_PLUGIN_DOT_SCENE=TRUE
             - -DOGRE_BUILD_COMPONENT_TERRAIN=TRUE
@@ -32,7 +33,8 @@ parts:
             # stuff we dont need for the viewer
             - -DOGRE_BUILD_TOOLS=FALSE
             - -DOGRE_BUILD_SAMPLES=FALSE
-            - -DOGRE_BUILD_PLUGIN_STBI=FALSE # we want to use freeimage instead
+            - -DOGRE_BUILD_PLUGIN_STBI=FALSE # we want to use rsimage instead
+            - -DOGRE_BUILD_PLUGIN_FREEIMAGE=FALSE
             - -DOGRE_BUILD_PLUGIN_EXRCODEC=FALSE
             - -DOGRE_BUILD_PLUGIN_BSP=FALSE
             - -DOGRE_BUILD_PLUGIN_PCZ=FALSE
@@ -41,19 +43,17 @@ parts:
             - -DOGRE_BUILD_COMPONENT_CSHARP=FALSE
             - -DOGRE_BUILD_COMPONENT_VOLUME=FALSE
             - -DOGRE_BUILD_COMPONENT_PROPERTY=FALSE
-            - -DOGRE_BUILD_COMPONENT_HLMS=FALSE
             - -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=FALSE
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-12
         source: https://github.com/OGRECave/ogre.git
-        source-tag: v13.5.2
+        source-tag: master
         source-depth: 1
         build-packages:
             - libassimp-dev
             - libxaw7-dev
             - libxrandr-dev
             - libfreetype6-dev
-            - libfreeimage-dev
             - libxt-dev
             - libgles2-mesa-dev
             - libsdl2-dev
@@ -61,11 +61,11 @@ parts:
             - libpugixml-dev
             - swig4.0
             - clang-12
+            - cargo
             - try: [nvidia-cg-dev]
         stage-packages:
             - libassimp5
             - libfreetype6
-            - libfreeimage3
             - libsdl2-2.0-0
             - python3
             - libpython3.8

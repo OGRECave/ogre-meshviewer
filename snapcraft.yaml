@@ -3,14 +3,14 @@ version: "23.02"
 confinement: strict
 summary: OGRE Mesh Viewer
 description: Viewer for .mesh model files as consumed by OGRE
-base: core20
+base: core22
 
 apps:
     ogre-meshviewer:
         command: bin/desktop-launch python3 $SNAP/bin/ogre_mesh_viewer.py
         plugs: [home, opengl, x11, removable-media]
         environment:
-            PYTHONPATH: $SNAP/usr/lib/python3.8/dist-packages/
+            PYTHONPATH: $SNAP/usr/lib/python3.10/dist-packages/
 parts:
     desktop-glib-only:
         source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
@@ -45,7 +45,7 @@ parts:
             - -DOGRE_BUILD_COMPONENT_PROPERTY=FALSE
             - -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=FALSE
             - -DCMAKE_INSTALL_PREFIX=/usr/
-            - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-12
+            - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-15
         source: https://github.com/OGRECave/ogre.git
         source-tag: v13.6.2
         source-depth: 1
@@ -60,22 +60,22 @@ parts:
             - libpython3-dev
             - libpugixml-dev
             - swig4.0
-            - clang-12
+            - clang-15
             - cargo
-            - try: [nvidia-cg-dev]
+            - on amd64: [nvidia-cg-dev]
         stage-packages:
             - libassimp5
             - libfreetype6
             - libsdl2-2.0-0
             - python3
-            - libpython3.8
+            - libpython3.10
             - libpugixml1v5
             - libxaw7
             - libxt6
             - libgl1
             - libgles2
             - libegl1
-            - try: [libcggl]
+            - on amd64: [libcggl]
         stage:
             - -usr/share/OGRE/Media/volumeTerrain
             - -usr/share/OGRE/Media/materials

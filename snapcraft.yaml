@@ -76,15 +76,6 @@ parts:
             - libgles2
             - libegl1
             - on amd64: [libcggl]
-        stage:
-            - -usr/share/OGRE/Media/volumeTerrain
-            - -usr/share/OGRE/Media/materials
-            - -usr/share/OGRE/Media/models
-            - -usr/share/OGRE/Media/thumbnails
-            - -usr/share/OGRE/Media/packs/chiropteraDM.pk3
-            - -usr/share/OGRE/Media/packs/fresneldemo.zip
-            - -usr/share/OGRE/Media/packs/DamagedHelmet.zip
-            - -usr/share/OGRE/resources.cfg
     viewer:
         plugin: dump
         source: https://github.com/OGRECave/ogre-meshviewer.git

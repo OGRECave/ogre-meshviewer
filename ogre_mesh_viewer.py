@@ -386,8 +386,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         # allow override by local resources.cfg
         if not self.getFSLayer().fileExists("resources.cfg"):
-            # we use the fonts from SdkTrays.zip
-            trays_loc = self.getDefaultMediaDir() + "/packs/SdkTrays.zip"
+            # look for SdkTrays.zip from the installation. On Windows there is a local resources.cfg
+            trays_loc = os.path.dirname(self.getFSLayer().getConfigFilePath("resources.cfg"))
+            trays_loc += "/Media/packs/SdkTrays.zip"
             rgm.addResourceLocation(trays_loc, "Zip", RGN_MESHVIEWER)
 
         if self.rescfg:

@@ -21,7 +21,7 @@ VET2STR = ("float", "float2", "float3", "float4", "ERROR",
 ROP2STR = ("ERROR", "Point List", "Line List", "Line Strip", "Triangle List", "Triangle Strip", "Triangle Fan")
 
 def show_vertex_decl(decl):
-    flags = ImGui.ImGuiTableFlags_Borders | ImGui.ImGuiTableFlags_SizingStretchProp
+    flags = ImGui.TableFlags_Borders | ImGui.TableFlags_SizingStretchProp
     if not ImGui.BeginTable("vertexDecl", 3, flags):
         return
     ImGui.TableSetupColumn("Semantic")
@@ -80,15 +80,15 @@ class LogWindow(Ogre.LogListener):
         if not self.show:
             return
 
-        ImGui.SetNextWindowSize(ImGui.ImVec2(500, 400), ImGui.ImGuiCond_FirstUseEver)
+        ImGui.SetNextWindowSize(ImGui.ImVec2(500, 400), ImGui.Cond_FirstUseEver)
         self.show = ImGui.Begin("Log", self.show)[1]
 
         ImGui.PushFont(self.font)
         for msg, lvl in self.items:
             if lvl == 4:
-                ImGui.PushStyleColor(ImGui.ImGuiCol_Text, ImGui.ImVec4(1, 0.4, 0.4, 1))
+                ImGui.PushStyleColor(ImGui.Col_Text, ImGui.ImVec4(1, 0.4, 0.4, 1))
             elif lvl == 3:
-                ImGui.PushStyleColor(ImGui.ImGuiCol_Text, ImGui.ImVec4(1, 0.8, 0.4, 1))
+                ImGui.PushStyleColor(ImGui.Col_Text, ImGui.ImVec4(1, 0.8, 0.4, 1))
             ImGui.TextWrapped(msg)
             if lvl > 2:
                 ImGui.PopStyleColor()
@@ -109,7 +109,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         self.logwin = app.logwin
 
     def draw_about(self):
-        flags = ImGui.ImGuiWindowFlags_AlwaysAutoResize
+        flags = ImGui.WindowFlags_AlwaysAutoResize
         self.show_about = ImGui.Begin("About OgreMeshViewer", self.show_about, flags)[1]
         ImGui.Text("By Pavel Rojtberg")
         ImGui.Text("OgreMeshViewer is licensed under the MIT License, see LICENSE for more information.")
@@ -122,11 +122,11 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         win = self.app.getRenderWindow()
         stats = win.getStatistics()
 
-        ImGui.SetNextWindowPos(ImGui.ImVec2(win.getWidth() - 10, win.getHeight() - 10), ImGui.ImGuiCond_Always, ImGui.ImVec2(1, 1))
+        ImGui.SetNextWindowPos(ImGui.ImVec2(win.getWidth() - 10, win.getHeight() - 10), ImGui.Cond_Always, ImGui.ImVec2(1, 1))
         ImGui.SetNextWindowBgAlpha(0.3)
-        flags = ImGui.ImGuiWindowFlags_NoMove | ImGui.ImGuiWindowFlags_NoTitleBar | ImGui.ImGuiWindowFlags_NoResize | \
-                ImGui.ImGuiWindowFlags_AlwaysAutoResize | ImGui.ImGuiWindowFlags_NoSavedSettings | ImGui.ImGuiWindowFlags_NoFocusOnAppearing | \
-                ImGui.ImGuiWindowFlags_NoNav
+        flags = ImGui.WindowFlags_NoMove | ImGui.WindowFlags_NoTitleBar | ImGui.WindowFlags_NoResize | \
+                ImGui.WindowFlags_AlwaysAutoResize | ImGui.WindowFlags_NoSavedSettings | ImGui.WindowFlags_NoFocusOnAppearing | \
+                ImGui.WindowFlags_NoNav
         self.show_metrics = ImGui.Begin("Metrics", self.show_metrics, flags)[1]
         ImGui.Text("Metrics")
         ImGui.Separator()
@@ -139,7 +139,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         win = self.app.getRenderWindow()
         ImGui.SetNextWindowPos(ImGui.ImVec2(win.getWidth() * 0.5, win.getHeight() * 0.5), 0, ImGui.ImVec2(0.5, 0.5))
 
-        flags = ImGui.ImGuiWindowFlags_NoTitleBar | ImGui.ImGuiWindowFlags_NoResize | ImGui.ImGuiWindowFlags_NoSavedSettings
+        flags = ImGui.WindowFlags_NoTitleBar | ImGui.WindowFlags_NoResize | ImGui.WindowFlags_NoSavedSettings
         ImGui.Begin("Loading", True, flags)
         ImGui.Text(self.app.filename)
         ImGui.Separator()
@@ -204,9 +204,9 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         # Mesh Info Sidebar
         mesh = entity.getMesh()
 
-        ImGui.SetNextWindowSize(ImGui.ImVec2(300, ImGui.GetFontSize()*25), ImGui.ImGuiCond_FirstUseEver)
+        ImGui.SetNextWindowSize(ImGui.ImVec2(300, ImGui.GetFontSize()*25), ImGui.Cond_FirstUseEver)
         ImGui.SetNextWindowPos(ImGui.ImVec2(0, ImGui.GetFontSize()*1.5))
-        flags = ImGui.ImGuiWindowFlags_NoTitleBar | ImGui.ImGuiWindowFlags_NoMove
+        flags = ImGui.WindowFlags_NoTitleBar | ImGui.WindowFlags_NoMove
         ImGui.Begin("MeshProps", None, flags)
         ImGui.Text(mesh.getName())
 

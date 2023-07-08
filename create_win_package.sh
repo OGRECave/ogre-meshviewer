@@ -6,9 +6,9 @@
 mkdir winpkg
 cd winpkg
 
-curl -L https://dl.cloudsmith.io/public/ogrecave/ogre/raw/versions/v13.6.2/ogre-sdk-v13.6.2-msvc141-x64.zip -o ogre-sdk.zip
-curl -LO https://www.python.org/ftp/python/3.10.9/python-3.10.9-embed-amd64.zip
-unzip python-3.10.9-embed-amd64.zip -d package
+curl -L https://dl.cloudsmith.io/public/ogrecave/ogre/raw/versions/v14.0.0/ogre-sdk-v14.0.0-msvc141-x64.zip -o ogre-sdk.zip
+curl -LO https://www.python.org/ftp/python/3.10.10/python-3.10.10-embed-amd64.zip
+unzip python-3.10.10-embed-amd64.zip -d package
 unzip ogre-sdk.zip
 
 # main
@@ -36,4 +36,4 @@ cp ../win_resources.cfg package/resources.cfg
 cp -R Media/RTShaderLib Media/Main package/
 cp -R Media/packs/SdkTrays.zip package/
 
-mv package ogre-meshviewer_23.02-win64
+mv package ogre-meshviewer_23.07-win64

@@ -264,6 +264,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
             for name, astate in animations.getAnimationStates().items():
                 if ImGui.TreeNode(name):
+                    ImGui.PushID(name)
                     if astate.getEnabled():
                         if ImGui.Button("Reset"):
                             astate.setEnabled(False)
@@ -281,6 +282,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     if changed:
                         astate.setEnabled(True)
                         astate.setTimePosition(value)
+                    ImGui.PopID()
                     ImGui.TreePop()
 
         lod_count = mesh.getNumLodLevels()

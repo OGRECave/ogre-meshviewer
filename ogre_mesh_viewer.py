@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import Ogre
 import Ogre.RTShader as OgreRTShader
 import Ogre.Bites as OgreBites

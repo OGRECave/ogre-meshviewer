@@ -1,11 +1,19 @@
-import Ogre
-import Ogre.RTShader as OgreRTShader
-import Ogre.Bites as OgreBites
-import Ogre.Overlay
-
-import Ogre.ImGui as ImGui
+#!/usr/bin/env python
 
 import os.path
+import sys
+
+try:
+    import Ogre
+    import Ogre.RTShader as OgreRTShader
+    import Ogre.Bites as OgreBites
+    import Ogre.Overlay
+    
+    import Ogre.ImGui as ImGui
+except ImportError as e:
+    print("ERROR: pip package 'ogre-python' is missing")
+    print("Install it by executing: 'pip install ogre-python'")
+    sys.exit(1)
 
 RGN_MESHVIEWER = "OgreMeshViewer"
 

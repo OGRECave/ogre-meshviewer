@@ -111,6 +111,8 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         self.orig_mat = None
         self.logwin = app.logwin
 
+        self.selected_renderer = app.getRoot().getRenderSystem().getName()
+
     def draw_about(self):
         flags = ImGui.WindowFlags_AlwaysAutoResize
         self.show_about = ImGui.Begin("About OgreMeshViewer", self.show_about, flags)[1]
@@ -122,59 +124,48 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         ImGui.BulletText("ImGui: %s" % ImGui.GetVersion())
         ImGui.End()
 
-    def draw_combo(self, label, current_item, items):
+    def draw_combo(self, label, current_item, items, rs):
         if ImGui.BeginCombo(label, current_item):
             for n in range(0, len(items)):
                 is_selected = (current_item == items[n])
                 if ImGui.Selectable(items[n], is_selected):
                     current_item = items[n]
-
-                    if label == "Renderer":
-                        for renderer in app.getRoot().getAvailableRenderers():
-                            if current_item == renderer.getName():
-                                app.getRoot().setRenderSystem(renderer)
-                                app.getRoot().saveConfig()
-                                self.app.getRoot().queueEndRendering()
-                                #app.getRoot().shutdown()
-                                self.app.restart = True
-                                #app.shutdown()
-                    else:
-                        app.getRoot().getRenderSystem().setConfigOption(label, current_item)
-                        #app.getRoot().saveConfig()
+                    rs.setConfigOption(label, current_item)
 
                 if is_selected:
                     ImGui.SetItemDefaultFocus()
             ImGui.EndCombo()
+        
+        return current_item
 
     def draw_render_settings(self):
         flags = ImGui.WindowFlags_AlwaysAutoResize
         self.show_render_settings = ImGui.Begin("Renderer Settings", self.show_render_settings, flags)[1]
 
         #https://ogrecave.github.io/ogre/api/latest/class_ogre_1_1_root.html
-        available_renderers = []
-        for renderer in app.getRoot().getAvailableRenderers():
-            available_renderers.append(renderer.getName())
-
-        #https://ogrecave.github.io/ogre/api/latest/group___render_system.html
-        rs = app.getRoot().getRenderSystem()
-        selected_renderer = rs.getName()
-        self.draw_combo("Renderer", selected_renderer, available_renderers)
+        if ImGui.BeginCombo("Renderer", self.selected_renderer):
+            for renderer in app.getRoot().getAvailableRenderers():
+                rname = renderer.getName()
+                is_selected = (self.selected_renderer == rname)
+                if ImGui.Selectable(rname, is_selected):
+                    self.selected_renderer = rname
+            ImGui.EndCombo()
 
         ImGui.Separator()
 
+        rs = app.getRoot().getRenderSystemByName(self.selected_renderer)
         config_options = rs.getConfigOptions()
         #https://ogrecave.github.io/ogre/api/latest/struct_ogre_1_1_config_option.html
         for option_name in config_options:
             config_option = config_options[option_name]
             current_value = config_option.currentValue
-            self.draw_combo(config_option.name, current_value, config_option.possibleValues)
-
-        #ImGui.ShowDemoWindow()
+            self.draw_combo(config_option.name, current_value, config_option.possibleValues, rs)
 
         if ImGui.Button("Save & Restart"):
-            app.getRoot().saveConfig()
+            app.next_rendersystem = self.selected_renderer
             app.restart = True
-            app.shutdown()
+            app.getRoot().queueEndRendering()
+
 
         ImGui.End()
 
@@ -396,6 +387,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         self.active_controllers = {}
 
+        self.next_rendersystem = None
+
     def keyPressed(self, evt):
         if evt.keysym.sym == OgreBites.SDLK_ESCAPE:
             self.getRoot().queueEndRendering()
@@ -485,6 +478,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         rgm.initialiseResourceGroup(Ogre.RGN_DEFAULT)
 
     def setup(self):
+        if self.next_rendersystem:
+            self.getRoot().setRenderSystem(self.getRoot().getRenderSystemByName(self.next_rendersystem))
+
         OgreBites.ApplicationContext.setup(self)
         self.addInputListener(self)
 
@@ -587,10 +583,6 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         self.entity = None
         self.axes = None
-        if self.restart:
-            # make sure empty rendersystem is written
-            self.getRoot().shutdown()
-            self.getRoot().setRenderSystem(None)
 
 
 if __name__ == "__main__":

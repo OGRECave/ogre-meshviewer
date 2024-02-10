@@ -121,6 +121,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         self.logwin = app.logwin
 
         self.selected_renderer = app.getRoot().getRenderSystem().getName()
+        self.lod_current_idx = -1
 
     def draw_about(self):
         flags = ImGui.WindowFlags_AlwaysAutoResize
@@ -337,17 +338,29 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         lod_count = mesh.getNumLodLevels()
         if lod_count > 1 and ImGui.CollapsingHeader("LOD levels"):
-            entity.setMeshLodBias(1)  # reset LOD override
+            if self.lod_current_idx == -1:
+                entity.setMeshLodBias(1)  # reset LOD override
+                lod_current_idx = entity.getCurrentLodIndex()
+            else:
+                entity.setMeshLodBias(1, self.lod_current_idx, self.lod_current_idx)
+                lod_current_idx = self.lod_current_idx
+
             strategy = mesh.getLodStrategy().getName()
-            curr_idx = entity.getCurrentLodIndex()
             ImGui.Text("Strategy: {}".format(strategy))
-            for i in range(lod_count):
-                txt = "Base Mesh" if i == 0 else "Level {}: {:.2f}".format(i, mesh.getLodLevel(i).userValue)
-                ImGui.Bullet()
-                ImGui.Selectable(txt, i == curr_idx)
-                if ImGui.IsItemHovered():
-                    # force this LOD level
-                    entity.setMeshLodBias(1, i, i)
+
+            if ImGui.BeginListBox("##lod_levels", ImGui.ImVec2(-1, min(3, lod_count) * ImGui.GetTextLineHeightWithSpacing())):
+                for n in range(lod_count):
+                    txt = "Base Mesh" if n == 0 else "Level {}: {:.2f}".format(n, mesh.getLodLevel(n).userValue)
+                    is_selected = (lod_current_idx == n)
+                    if ImGui.Selectable(txt, is_selected):
+                        self.lod_current_idx = n
+                        entity.setMeshLodBias(1, n, n)
+                    # Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                    if is_selected:
+                        ImGui.SetItemDefaultFocus()
+                    if ImGui.IsItemHovered():
+                        entity.setMeshLodBias(1, n, n)
+                ImGui.EndListBox()
 
         if ImGui.CollapsingHeader("Bounds"):
             bounds = mesh.getBounds()
@@ -402,6 +415,10 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         for hit in self.ray_query.execute():
             self.camman.setPivotOffset(ray.getPoint(hit.distance))
             break
+        return True
+
+    def mouseWheelRolled(self, evt):
+        self.gui.lod_current_idx = -1
         return True
 
     def _toggle_bbox(self):

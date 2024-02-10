@@ -103,6 +103,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         Ogre.RenderTargetListener.__init__(self)
         self.show_about = False
         self.show_metrics = False
+        self.show_render_settings = False
 
         self.app = app
 
@@ -118,6 +119,62 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         ImGui.Separator()
         ImGui.BulletText("Ogre:  %s" % Ogre.__version__)
         ImGui.BulletText("ImGui: %s" % ImGui.GetVersion())
+        ImGui.End()
+
+    def draw_combo(self, label, current_item, items):
+        if ImGui.BeginCombo(label, current_item):
+            for n in range(0, len(items)):
+                is_selected = (current_item == items[n])
+                if ImGui.Selectable(items[n], is_selected):
+                    current_item = items[n]
+
+                    if label == "Renderer":
+                        for renderer in app.getRoot().getAvailableRenderers():
+                            if current_item == renderer.getName():
+                                app.getRoot().setRenderSystem(renderer)
+                                app.getRoot().saveConfig()
+                                self.app.getRoot().queueEndRendering()
+                                #app.getRoot().shutdown()
+                                self.app.restart = True
+                                #app.shutdown()
+                    else:
+                        app.getRoot().getRenderSystem().setConfigOption(label, current_item)
+                        #app.getRoot().saveConfig()
+
+                if is_selected:
+                    ImGui.SetItemDefaultFocus()
+            ImGui.EndCombo()
+
+    def draw_render_settings(self):
+        flags = ImGui.WindowFlags_AlwaysAutoResize
+        self.show_render_settings = ImGui.Begin("Renderer Settings", self.show_render_settings, flags)[1]
+
+        #https://ogrecave.github.io/ogre/api/latest/class_ogre_1_1_root.html
+        available_renderers = []
+        for renderer in app.getRoot().getAvailableRenderers():
+            available_renderers.append(renderer.getName())
+
+        #https://ogrecave.github.io/ogre/api/latest/group___render_system.html
+        rs = app.getRoot().getRenderSystem()
+        selected_renderer = rs.getName()
+        self.draw_combo("Renderer", selected_renderer, available_renderers)
+
+        ImGui.Separator()
+
+        config_options = rs.getConfigOptions()
+        #https://ogrecave.github.io/ogre/api/latest/struct_ogre_1_1_config_option.html
+        for option_name in config_options:
+            config_option = config_options[option_name]
+            current_value = config_option.currentValue
+            self.draw_combo(config_option.name, current_value, config_option.possibleValues)
+
+        #ImGui.ShowDemoWindow()
+
+        if ImGui.Button("Save & Restart"):
+            app.getRoot().saveConfig()
+            app.restart = True
+            app.shutdown()
+
         ImGui.End()
 
     def draw_metrics(self):
@@ -161,15 +218,19 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             return
 
         if ImGui.BeginMainMenuBar():
+
             if ImGui.BeginMenu("File"):
                 if ImGui.MenuItem("Select Renderer"):
                     self.app.getRoot().queueEndRendering()
                     self.app.restart = True
+                if ImGui.MenuItem("Render Settings"):
+                    self.show_render_settings = True
                 if ImGui.MenuItem("Save Screenshot", "P"):
                     self.app._save_screenshot()
                 if ImGui.MenuItem("Quit", "Esc"):
                     self.app.getRoot().queueEndRendering()
                 ImGui.EndMenu()
+
             if entity is not None and ImGui.BeginMenu("View"):
                 enode = entity.getParentSceneNode()
                 if ImGui.MenuItem("Show Axes", "A", self.app.axes_visible):
@@ -196,6 +257,9 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         if self.show_metrics:
             self.draw_metrics()
+
+        if self.show_render_settings:
+            self.draw_render_settings()
 
         self.logwin.draw()
 

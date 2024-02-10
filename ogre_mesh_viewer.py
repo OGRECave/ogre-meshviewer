@@ -41,6 +41,15 @@ def show_vertex_decl(decl):
         ImGui.Text(str(e.getSource()))
     ImGui.EndTable()
 
+def config_option_combo(rs, option):
+    if ImGui.BeginCombo(option.name, option.currentValue):
+        for val in option.possibleValues:
+            is_selected = (option.currentValue == val)
+            if ImGui.Selectable(val, is_selected):
+                rs.setConfigOption(option.name, val)
+
+        ImGui.EndCombo()
+
 def printable(str):
     return str.encode("utf-8", "replace").decode()
 
@@ -103,12 +112,15 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         Ogre.RenderTargetListener.__init__(self)
         self.show_about = False
         self.show_metrics = False
+        self.show_render_settings = False
 
         self.app = app
 
         self.highlighted = -1
         self.orig_mat = None
         self.logwin = app.logwin
+
+        self.selected_renderer = app.getRoot().getRenderSystem().getName()
 
     def draw_about(self):
         flags = ImGui.WindowFlags_AlwaysAutoResize
@@ -119,6 +131,37 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         ImGui.Separator()
         ImGui.BulletText("Ogre:  %s" % Ogre.__version__)
         ImGui.BulletText("ImGui: %s" % ImGui.GetVersion())
+        ImGui.End()
+
+    def draw_render_settings(self):
+        flags = ImGui.WindowFlags_AlwaysAutoResize
+        self.show_render_settings = ImGui.Begin("Renderer Settings", self.show_render_settings, flags)[1]
+
+        #https://ogrecave.github.io/ogre/api/latest/class_ogre_1_1_root.html
+        if ImGui.BeginCombo("Renderer", self.selected_renderer):
+            for renderer in app.getRoot().getAvailableRenderers():
+                rname = renderer.getName()
+                is_selected = (self.selected_renderer == rname)
+                if ImGui.Selectable(rname, is_selected):
+                    self.selected_renderer = rname
+            ImGui.EndCombo()
+
+        ImGui.Separator()
+
+        rs = app.getRoot().getRenderSystemByName(self.selected_renderer)
+        config_options = rs.getConfigOptions()
+        #https://ogrecave.github.io/ogre/api/latest/struct_ogre_1_1_config_option.html
+        for config_option in config_options.values():
+            config_option_combo(rs, config_option)
+
+        ImGui.Separator()
+
+        if ImGui.Button("Apply & Restart"):
+            app.next_rendersystem = self.selected_renderer
+            app.restart = True
+            app.getRoot().queueEndRendering()
+
+
         ImGui.End()
 
     def draw_metrics(self):
@@ -162,15 +205,16 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             return
 
         if ImGui.BeginMainMenuBar():
+
             if ImGui.BeginMenu("File"):
-                if ImGui.MenuItem("Select Renderer"):
-                    self.app.getRoot().queueEndRendering()
-                    self.app.restart = True
+                if ImGui.MenuItem("Renderer Settings"):
+                    self.show_render_settings = True
                 if ImGui.MenuItem("Save Screenshot", "P"):
                     self.app._save_screenshot()
                 if ImGui.MenuItem("Quit", "Esc"):
                     self.app.getRoot().queueEndRendering()
                 ImGui.EndMenu()
+
             if entity is not None and ImGui.BeginMenu("View"):
                 enode = entity.getParentSceneNode()
                 if ImGui.MenuItem("Show Axes", "A", self.app.axes_visible):
@@ -197,6 +241,9 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         if self.show_metrics:
             self.draw_metrics()
+
+        if self.show_render_settings:
+            self.draw_render_settings()
 
         self.logwin.draw()
 
@@ -332,6 +379,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         self.active_controllers = {}
 
+        self.next_rendersystem = None
+
     def keyPressed(self, evt):
         if evt.keysym.sym == OgreBites.SDLK_ESCAPE:
             self.getRoot().queueEndRendering()
@@ -421,6 +470,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         rgm.initialiseResourceGroup(Ogre.RGN_DEFAULT)
 
     def setup(self):
+        if self.next_rendersystem:
+            self.getRoot().setRenderSystem(self.getRoot().getRenderSystemByName(self.next_rendersystem))
+
         OgreBites.ApplicationContext.setup(self)
         self.addInputListener(self)
 
@@ -523,10 +575,6 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         self.entity = None
         self.axes = None
-        if self.restart:
-            # make sure empty rendersystem is written
-            self.getRoot().shutdown()
-            self.getRoot().setRenderSystem(None)
 
 
 if __name__ == "__main__":

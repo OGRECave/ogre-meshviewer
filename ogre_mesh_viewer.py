@@ -106,10 +106,11 @@ class LogWindow(Ogre.LogListener):
         ImGui.PopFont()
         ImGui.End()
 
-class MeshViewerGui(Ogre.RenderTargetListener):
+class MeshViewerGui(Ogre.RenderTargetListener, Ogre.LodListener):
 
     def __init__(self, app):
         Ogre.RenderTargetListener.__init__(self)
+        Ogre.LodListener.__init__(self)
         self.show_about = False
         self.show_metrics = False
         self.show_render_settings = False
@@ -122,6 +123,13 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         self.selected_renderer = app.getRoot().getRenderSystem().getName()
         self.lod_current_idx = -1
+        self.lod_current_dist = 0
+
+    def prequeueEntityMeshLodChanged(self, evt):
+        if evt.lodValue != self.lod_current_dist:
+            self.lod_current_dist = evt.lodValue
+            self.lod_current_idx = -1
+        return True
 
     def draw_about(self):
         flags = ImGui.WindowFlags_AlwaysAutoResize
@@ -418,7 +426,6 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         return True
 
     def mouseWheelRolled(self, evt):
-        self.gui.lod_current_idx = -1
         return True
 
     def _toggle_bbox(self):
@@ -541,6 +548,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         self.gui = MeshViewerGui(self)
         self.getRenderWindow().addListener(self.gui)
+        scn_mgr.addLodListener(self.gui)
 
         self.getRoot().renderOneFrame()
         self.getRoot().renderOneFrame()

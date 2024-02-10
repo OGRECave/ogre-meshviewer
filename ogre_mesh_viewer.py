@@ -223,6 +223,9 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     self.app._toggle_axes()
                 if ImGui.MenuItem("Show Bounding Box", "B", enode.getShowBoundingBox()):
                     self.app._toggle_bbox()
+                if ImGui.MenuItem("Polygon Mode", "M"):
+                    self.app._toggle_polygon_mode()
+
                 if entity.hasSkeleton() and ImGui.MenuItem("Show Skeleton", None, entity.getDisplaySkeleton()):
                     entity.setDisplaySkeleton(not entity.getDisplaySkeleton())
                 ImGui.EndMenu()
@@ -405,6 +408,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             self._toggle_axes()
         elif evt.keysym.sym == ord("p"):
             self._save_screenshot()
+        elif evt.keysym.sym == ord("m"):
+            self._toggle_polygon_mode()
 
         return True
 
@@ -427,6 +432,16 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         enode = self.entity.getParentSceneNode()
         enode.showBoundingBox(not enode.getShowBoundingBox())
+
+    def _toggle_polygon_mode(self):
+        polygon_mode = self.cam.getPolygonMode()
+
+        if polygon_mode == Ogre.PM_SOLID:
+            self.cam.setPolygonMode(Ogre.PM_WIREFRAME)
+        if polygon_mode == Ogre.PM_WIREFRAME:
+            self.cam.setPolygonMode(Ogre.PM_POINTS)
+        if polygon_mode == Ogre.PM_POINTS:
+            self.cam.setPolygonMode(Ogre.PM_SOLID)
 
     def _toggle_axes(self):
         if not self.axes_visible:

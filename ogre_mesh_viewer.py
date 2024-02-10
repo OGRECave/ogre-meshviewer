@@ -115,7 +115,8 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         flags = ImGui.WindowFlags_AlwaysAutoResize
         self.show_about = ImGui.Begin("About OgreMeshViewer", self.show_about, flags)[1]
         ImGui.Text("By Pavel Rojtberg")
-        ImGui.Text("OgreMeshViewer is licensed under the MIT License, see LICENSE for more information.")
+        ImGui.Text("OgreMeshViewer is licensed under the MIT License.")
+        ImGui.Text("See LICENSE for more information.")
         ImGui.Separator()
         ImGui.BulletText("Ogre:  %s" % Ogre.__version__)
         ImGui.BulletText("ImGui: %s" % ImGui.GetVersion())
@@ -438,6 +439,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
     def _save_screenshot(self):
         name = os.path.splitext(self.filename)[0]
         outpath = os.path.join(self.filedir, "screenshot_{}_".format(name))
+
+        Ogre.LogManager.getSingleton().logMessage("Screenshot saved to folder: %s" % self.filedir)
 
         self.cam.getViewport().setOverlaysEnabled(False)
         self.getRoot().renderOneFrame()

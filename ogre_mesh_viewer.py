@@ -41,6 +41,15 @@ def show_vertex_decl(decl):
         ImGui.Text(str(e.getSource()))
     ImGui.EndTable()
 
+def config_option_combo(rs, option):
+    if ImGui.BeginCombo(option.name, option.currentValue):
+        for val in option.possibleValues:
+            is_selected = (option.currentValue == val)
+            if ImGui.Selectable(val, is_selected):
+                rs.setConfigOption(option.name, val)
+
+        ImGui.EndCombo()
+
 def printable(str):
     return str.encode("utf-8", "replace").decode()
 
@@ -124,20 +133,6 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         ImGui.BulletText("ImGui: %s" % ImGui.GetVersion())
         ImGui.End()
 
-    def draw_combo(self, label, current_item, items, rs):
-        if ImGui.BeginCombo(label, current_item):
-            for n in range(0, len(items)):
-                is_selected = (current_item == items[n])
-                if ImGui.Selectable(items[n], is_selected):
-                    current_item = items[n]
-                    rs.setConfigOption(label, current_item)
-
-                if is_selected:
-                    ImGui.SetItemDefaultFocus()
-            ImGui.EndCombo()
-        
-        return current_item
-
     def draw_render_settings(self):
         flags = ImGui.WindowFlags_AlwaysAutoResize
         self.show_render_settings = ImGui.Begin("Renderer Settings", self.show_render_settings, flags)[1]
@@ -156,12 +151,12 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         rs = app.getRoot().getRenderSystemByName(self.selected_renderer)
         config_options = rs.getConfigOptions()
         #https://ogrecave.github.io/ogre/api/latest/struct_ogre_1_1_config_option.html
-        for option_name in config_options:
-            config_option = config_options[option_name]
-            current_value = config_option.currentValue
-            self.draw_combo(config_option.name, current_value, config_option.possibleValues, rs)
+        for config_option in config_options.values():
+            config_option_combo(rs, config_option)
 
-        if ImGui.Button("Save & Restart"):
+        ImGui.Separator()
+
+        if ImGui.Button("Apply & Restart"):
             app.next_rendersystem = self.selected_renderer
             app.restart = True
             app.getRoot().queueEndRendering()

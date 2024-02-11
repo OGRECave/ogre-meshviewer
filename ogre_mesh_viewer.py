@@ -122,6 +122,8 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         self.selected_renderer = app.getRoot().getRenderSystem().getName()
 
+        self.lod_idx_override = -1
+
     def draw_about(self):
         flags = ImGui.WindowFlags_AlwaysAutoResize
         self.show_about = ImGui.Begin("About OgreMeshViewer", self.show_about, flags)[1]
@@ -337,14 +339,27 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         lod_count = mesh.getNumLodLevels()
         if lod_count > 1 and ImGui.CollapsingHeader("LOD levels"):
-            entity.setMeshLodBias(1)  # reset LOD override
+            if self.lod_idx_override > -1:
+                 entity.setMeshLodBias(1, self.lod_idx_override, self.lod_idx_override)
+            else:
+                entity.setMeshLodBias(1)  # reset LOD override
             strategy = mesh.getLodStrategy().getName()
             curr_idx = entity.getCurrentLodIndex()
+            ImGui.AlignTextToFramePadding()
             ImGui.Text("Strategy: {}".format(strategy))
+            ImGui.SameLine()
+            
+            if ImGui.Checkbox("active", self.lod_idx_override == -1)[1]:
+                self.lod_idx_override = -1
+            elif self.lod_idx_override == -1:
+                self.lod_idx_override = curr_idx
+            
             for i in range(lod_count):
                 txt = "Base Mesh" if i == 0 else "Level {}: {:.2f}".format(i, mesh.getLodLevel(i).userValue)
                 ImGui.Bullet()
-                ImGui.Selectable(txt, i == curr_idx)
+                if ImGui.Selectable(txt, i == curr_idx):
+                    self.lod_idx_override = i
+
                 if ImGui.IsItemHovered():
                     # force this LOD level
                     entity.setMeshLodBias(1, i, i)

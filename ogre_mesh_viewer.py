@@ -8,6 +8,10 @@ import Ogre.Overlay
 import Ogre.ImGui as ImGui
 
 import os.path
+import sys
+
+import tkinter as tk
+from tkinter import filedialog
 
 RGN_MESHVIEWER = "OgreMeshViewer"
 
@@ -52,6 +56,18 @@ def config_option_combo(rs, option):
 
 def printable(str):
     return str.encode("utf-8", "replace").decode()
+
+def open_file_dialog():
+    root = tk.Tk()
+    root.withdraw()
+    infile = filedialog.askopenfilename(
+        title="Open",
+        filetypes=[
+            ("OGRE Mesh files", "*.mesh"),
+            ("OGRE Scene files", "*.scene"),
+            ("ASSIMP Supported", "*.fbx,*.dae,*.gltf,*.glb,*.obj"),
+            ("Other", "*")])
+    return infile
 
 class MaterialCreator(Ogre.MeshSerializerListener):
 
@@ -163,7 +179,6 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             app.restart = True
             app.getRoot().queueEndRendering()
 
-
         ImGui.End()
 
     def draw_metrics(self):
@@ -209,6 +224,8 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         if ImGui.BeginMainMenuBar():
 
             if ImGui.BeginMenu("File"):
+                if ImGui.MenuItem("Open File", "O"):
+                    self.app._open_file_dialog()
                 if ImGui.MenuItem("Renderer Settings"):
                     self.show_render_settings = True
                 if ImGui.MenuItem("Save Screenshot", "P"):
@@ -399,6 +416,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         self.next_rendersystem = None
 
+        self.camman = None
+
     def keyPressed(self, evt):
         if evt.keysym.sym == OgreBites.SDLK_ESCAPE:
             self.getRoot().queueEndRendering()
@@ -410,6 +429,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             self._save_screenshot()
         elif evt.keysym.sym == ord("w"):
             self._toggle_wireframe_mode()
+        elif evt.keysym.sym == ord("o"):
+            self._open_file_dialog()
 
         return True
 
@@ -460,6 +481,18 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.getRenderWindow().writeContentsToTimestampedFile(outpath, ".png")
         self.cam.getViewport().setOverlaysEnabled(True)
 
+    def _open_file_dialog(self):
+        infile = open_file_dialog()
+        if infile:
+            self.filename = os.path.basename(infile)
+            self.filedir = os.path.dirname(infile)
+
+            # Remove all objects an recreate
+            self.cam.detachFromParent()
+            self.scn_mgr.clearScene()
+
+            self.initScene()
+
     def locateResources(self):
         rgm = Ogre.ResourceGroupManager.getSingleton()
         # ensure our resource group is separate, even with a local resources.cfg
@@ -496,6 +529,54 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.logwin = LogWindow()
         Ogre.LogManager.getSingleton().getDefaultLog().addListener(self.logwin)
         rgm.initialiseResourceGroup(Ogre.RGN_DEFAULT)
+
+    def initScene(self):
+        scn_mgr = self.scn_mgr
+
+        if self.filename.lower().endswith(".scene"):
+            self.attach_node = scn_mgr.getRootSceneNode().createChildSceneNode()
+            self.attach_node.loadChildren(self.filename)
+
+            self.attach_node._update(True, False)
+            diam = self.attach_node._getWorldAABB().getSize().length()
+
+            for c in scn_mgr.getCameras().values():
+                if c.getName() == self.main_cam_name:
+                    continue
+                # the camera frustum of any contained camera blows the above heuristic
+                # so use the camera position instead
+                diam = c.getDerivedPosition().length()
+                break
+        else:
+            self.attach_node = None
+            self.entity = scn_mgr.createEntity(self.filename)
+            scn_mgr.getRootSceneNode().createChildSceneNode().attachObject(self.entity)
+            diam = self.entity.getBoundingBox().getSize().length()
+
+        self.cam.setNearClipDistance(diam * 0.01)
+
+        self.axes = Ogre.DefaultDebugDrawer()
+        self.axes.setStatic(True)
+        self.axes.drawAxes(Ogre.Affine3.IDENTITY, diam / 4)
+
+        camnode = scn_mgr.getRootSceneNode().createChildSceneNode()
+        camnode.attachObject(self.cam)
+
+        if len(scn_mgr.getMovableObjects("Light")) == 0:
+            # skip creating light, if scene already contains one
+            light = scn_mgr.createLight("MainLight")
+            light.setType(Ogre.Light.LT_DIRECTIONAL)
+            light.setSpecularColour(Ogre.ColourValue.White)
+            camnode.attachObject(light)
+
+        if self.camman == None:
+            self.camman = OgreBites.CameraMan(camnode)
+        else:
+            self.camman.setCamera(camnode)
+            self.camman.setTarget(camnode.getCreator().getRootSceneNode())
+        self.camman.setStyle(OgreBites.CS_ORBIT)
+        self.camman.setYawPitchDist(0, 0.3, diam)
+        self.camman.setFixedYaw(False)
 
     def setup(self):
         if self.next_rendersystem:
@@ -542,10 +623,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.highlight_mat.getTechniques()[0].getPasses()[0].setEmissive((1, 1, 0))
 
         main_cam_name = "MeshViewer/Cam"
+        self.main_cam_name = main_cam_name
         self.cam = scn_mgr.createCamera(main_cam_name)
         self.cam.setAutoAspectRatio(True)
-        camnode = scn_mgr.getRootSceneNode().createChildSceneNode()
-        camnode.attachObject(self.cam)
 
         vp = self.getRenderWindow().addViewport(self.cam)
         vp.setBackgroundColour((.3, .3, .3))
@@ -556,42 +636,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.getRoot().renderOneFrame()
         self.getRoot().renderOneFrame()
 
-        if self.filename.lower().endswith(".scene"):
-            self.attach_node = scn_mgr.getRootSceneNode().createChildSceneNode()
-            self.attach_node.loadChildren(self.filename)
-
-            self.attach_node._update(True, False)
-            diam = self.attach_node._getWorldAABB().getSize().length()
-
-            for c in scn_mgr.getCameras().values():
-                if c.getName() == main_cam_name:
-                    continue
-                # the camera frustum of any contained camera blows the above heuristic
-                # so use the camera position instead
-                diam = c.getDerivedPosition().length()
-                break
-        else:
-            self.entity = scn_mgr.createEntity(self.filename)
-            scn_mgr.getRootSceneNode().createChildSceneNode().attachObject(self.entity)
-            diam = self.entity.getBoundingBox().getSize().length()
-
-        self.cam.setNearClipDistance(diam * 0.01)
-
-        self.axes = Ogre.DefaultDebugDrawer()
-        self.axes.setStatic(True)
-        self.axes.drawAxes(Ogre.Affine3.IDENTITY, diam / 4)
-
-        if len(scn_mgr.getMovableObjects("Light")) == 0:
-            # skip creating light, if scene already contains one
-            light = scn_mgr.createLight("MainLight")
-            light.setType(Ogre.Light.LT_DIRECTIONAL)
-            light.setSpecularColour(Ogre.ColourValue.White)
-            camnode.attachObject(light)
-
-        self.camman = OgreBites.CameraMan(camnode)
-        self.camman.setStyle(OgreBites.CS_ORBIT)
-        self.camman.setYawPitchDist(0, 0.3, diam)
-        self.camman.setFixedYaw(False)
+        self.initScene()
 
         self.imgui_input = OgreBites.ImGuiInputListener()
         self.input_dispatcher = OgreBites.InputListenerChain([self.imgui_input, self.camman])
@@ -604,15 +649,24 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.entity = None
         self.axes = None
 
-
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Ogre Mesh Viewer")
-    parser.add_argument("infile", help="path to a ogre .mesh, ogre .scene or any format supported by assimp")
-    parser.add_argument("-c", "--rescfg", help="path to the resources.cfg")
+    parser.add_argument("infile", help="path to a ogre .mesh, ogre .scene or any format supported by assimp", nargs='?')
+    parser.add_argument("-c", "--rescfg", help="path to the resources.cfg", required=False)
+    parser.set_defaults(infile='')
     args = parser.parse_args()
-    app = MeshViewer(args.infile, args.rescfg)
+
+    infile = args.infile
+
+    if infile == "":
+        infile = open_file_dialog()
+        if not infile or infile == "":
+            print("ERROR: No file selected.")
+            sys.exit(1)
+
+    app = MeshViewer(infile, args.rescfg)
 
     while True:  # allow auto restart
         try:
@@ -621,5 +675,7 @@ if __name__ == "__main__":
             app.closeApp()
         except RuntimeError as e:
             Ogre.LogManager.getSingleton().logMessage(str(e))
+            sys.exit(1)
 
-        if not app.restart: break
+        if not app.restart:
+            sys.exit(0)

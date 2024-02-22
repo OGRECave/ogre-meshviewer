@@ -51,10 +51,8 @@ parts:
         source-depth: 1
         build-packages:
             - libassimp-dev
-            - libxaw7-dev
             - libxrandr-dev
             - libfreetype6-dev
-            - libxt-dev
             - libgles2-mesa-dev
             - libsdl2-dev
             - libpython3-dev
@@ -70,8 +68,6 @@ parts:
             - python3
             - libpython3.10
             - libpugixml1v5
-            - libxaw7
-            - libxt6
             - libgl1
             - libgles2
             - libegl1

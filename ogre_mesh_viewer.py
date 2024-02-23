@@ -9,6 +9,9 @@ import Ogre.ImGui as ImGui
 
 import os.path
 
+import tkinter as tk
+from tkinter import filedialog
+
 RGN_MESHVIEWER = "OgreMeshViewer"
 
 VES2STR = ("ERROR", "Position", "Blend Weights", "Blend Indices", "Normal", "Diffuse", "Specular", "Texcoord", "Binormal", "Tangent")
@@ -52,6 +55,15 @@ def config_option_combo(rs, option):
 
 def printable(str):
     return str.encode("utf-8", "replace").decode()
+
+def askopenfilename(initialdir=None):
+    infile = filedialog.askopenfilename(
+        title="Select Mesh File",
+        initialdir=initialdir,
+        filetypes=[("All files", "*"),
+                   ("Ogre files", "*.mesh *.scene"),
+                   ("Common mesh files", "*.obj *.fbx *.ply *.gltf *.glb ")])
+    return infile
 
 class MaterialCreator(Ogre.MeshSerializerListener):
 
@@ -209,6 +221,11 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         if ImGui.BeginMainMenuBar():
 
             if ImGui.BeginMenu("File"):
+                if ImGui.MenuItem("Open File"):
+                    app.infile = askopenfilename(app.filedir)
+                    if app.infile:
+                        app.restart = True
+                        app.getRoot().queueEndRendering()
                 if ImGui.MenuItem("Renderer Settings"):
                     self.show_render_settings = True
                 if ImGui.MenuItem("Save Screenshot", "P"):
@@ -385,8 +402,14 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         OgreBites.ApplicationContext.__init__(self, "OgreMeshViewer")
         OgreBites.InputListener.__init__(self)
 
-        self.filename = os.path.basename(infile)
-        self.filedir = os.path.dirname(infile)
+        self.infile = infile
+        if not self.infile:
+            self.infile = askopenfilename()
+        if not self.infile:
+            raise SystemExit("No file selected")
+
+        self.filename = None
+        self.filedir = None
         self.rescfg = rescfg
 
         self.entity = None
@@ -398,6 +421,10 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.active_controllers = {}
 
         self.next_rendersystem = None
+
+        # in case we want to show the file dialog
+        root = tk.Tk()
+        root.withdraw()
 
     def keyPressed(self, evt):
         if evt.keysym.sym == OgreBites.SDLK_ESCAPE:
@@ -461,6 +488,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.cam.getViewport().setOverlaysEnabled(True)
 
     def locateResources(self):
+        self.filename = os.path.basename(self.infile)
+        self.filedir = os.path.dirname(self.infile)
+
         rgm = Ogre.ResourceGroupManager.getSingleton()
         # ensure our resource group is separate, even with a local resources.cfg
         rgm.createResourceGroup(RGN_MESHVIEWER, False)
@@ -609,7 +639,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Ogre Mesh Viewer")
-    parser.add_argument("infile", help="path to a ogre .mesh, ogre .scene or any format supported by assimp")
+    parser.add_argument("infile", nargs="?", help="path to a ogre .mesh, ogre .scene or any format supported by assimp")
     parser.add_argument("-c", "--rescfg", help="path to the resources.cfg")
     args = parser.parse_args()
     app = MeshViewer(args.infile, args.rescfg)

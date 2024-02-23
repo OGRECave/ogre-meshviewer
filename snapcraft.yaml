@@ -69,6 +69,7 @@ parts:
             - libpython3.10
             - libpugixml1v5
             - libgl1
+            - libsm6
             - libgles2
             - libegl1
             - on amd64: [libcggl]

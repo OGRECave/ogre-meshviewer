@@ -14,6 +14,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 RGN_MESHVIEWER = "OgreMeshViewer"
+RGN_MESHES = "Meshes"
 
 VES2STR = ("ERROR", "Position", "Blend Weights", "Blend Indices", "Normal", "Diffuse", "Specular", "Texcoord", "Binormal", "Tangent")
 VET2STR = ("float", "float2", "float3", "float4", "ERROR",
@@ -57,16 +58,19 @@ def config_option_combo(rs, option):
 def printable(str):
     return str.encode("utf-8", "replace").decode()
 
-def open_file_dialog():
+def open_file_dialog(filedir=""):
     root = tk.Tk()
     root.withdraw()
+
     infile = filedialog.askopenfilename(
         title="Open",
         filetypes=[
             ("OGRE Mesh files", "*.mesh"),
             ("OGRE Scene files", "*.scene"),
-            ("ASSIMP Supported", "*.fbx,*.dae,*.gltf,*.glb,*.obj"),
-            ("Other", "*")])
+            ("ASSIMP Supported", "*.fbx *.dae *.gltf *.glb *.obj"),
+            ("Other", "*")],
+        initialdir=filedir
+        )
     return infile
 
 class MaterialCreator(Ogre.MeshSerializerListener):
@@ -417,6 +421,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.next_rendersystem = None
 
         self.camman = None
+        self.cam = None
 
     def keyPressed(self, evt):
         if evt.keysym.sym == OgreBites.SDLK_ESCAPE:
@@ -482,14 +487,44 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.cam.getViewport().setOverlaysEnabled(True)
 
     def _open_file_dialog(self):
-        infile = open_file_dialog()
+        infile = open_file_dialog(self.filedir)
         if infile:
             self.filename = os.path.basename(infile)
             self.filedir = os.path.dirname(infile)
 
+            # Stop animation controllers
+            controller_mgr = Ogre.ControllerManager.getSingleton()
+            controller_mgr.clearControllers()
+            self.active_controllers = {}
+
+            # Disable Axes
+            if self.axes_visible:
+                self.scn_mgr.removeListener(self.axes)
+                self.axes = None
+                self.axes_visible = False
+
+            # Reset Wireframe Mode
+            self.cam.setPolygonMode(Ogre.PM_SOLID)
+
             # Remove all objects an recreate
             self.cam.detachFromParent()
             self.scn_mgr.clearScene()
+
+            # Show loading screen
+            self.entity = None
+            self.attach_node = None
+
+            self.getRoot().renderOneFrame()
+            self.getRoot().renderOneFrame()
+
+            # Reload resources
+            rgm = Ogre.ResourceGroupManager.getSingleton()
+            if rgm.resourceGroupExists(rgm.getWorldResourceGroupName()):
+                rgm.clearResourceGroup(rgm.getWorldResourceGroupName())
+                rgm.destroyResourceGroup(rgm.getWorldResourceGroupName())
+            if rgm.resourceGroupExists(RGN_MESHES):
+                rgm.clearResourceGroup(RGN_MESHES)
+                rgm.destroyResourceGroup(RGN_MESHES)
 
             self.initScene()
 
@@ -515,10 +550,6 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             for sec, settings in cfg.getSettingsBySection().items():
                 for kind, loc in settings.items():
                     rgm.addResourceLocation(loc, kind, sec)
-
-        # explicitly add mesh location to be safe
-        if not rgm.resourceLocationExists(self.filedir, Ogre.RGN_DEFAULT):
-            rgm.addResourceLocation(self.filedir, "FileSystem", Ogre.RGN_DEFAULT)
         
     def loadResources(self):
         rgm = Ogre.ResourceGroupManager.getSingleton()
@@ -528,10 +559,21 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         # only capture default group
         self.logwin = LogWindow()
         Ogre.LogManager.getSingleton().getDefaultLog().addListener(self.logwin)
-        rgm.initialiseResourceGroup(Ogre.RGN_DEFAULT)
+        #if not self.filename.lower().endswith(".scene"):
+        #    rgm.initialiseResourceGroup(Ogre.RGN_DEFAULT)
 
     def initScene(self):
         scn_mgr = self.scn_mgr
+
+        # Add Mesh location
+        rgm = Ogre.ResourceGroupManager.getSingleton()
+        if self.filename.lower().endswith(".mesh"):
+            rg_name = RGN_MESHES
+        else:
+            rg_name = rgm.getWorldResourceGroupName()
+        if not rgm.resourceLocationExists(self.filedir, rg_name):
+            rgm.addResourceLocation(self.filedir, "FileSystem", rg_name)
+        rgm.initialiseResourceGroup(rg_name)
 
         if self.filename.lower().endswith(".scene"):
             self.attach_node = scn_mgr.getRootSceneNode().createChildSceneNode()
@@ -615,7 +657,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         imgui_overlay.disown()  # owned by OverlayMgr now
 
         shadergen = OgreRTShader.ShaderGenerator.getSingleton()
-        shadergen.addSceneManager(scn_mgr)  # must be done before we do anything with the scene
+        if shadergen.getActiveSceneManager() != scn_mgr:
+            shadergen.addSceneManager(scn_mgr)  # must be done before we do anything with the scene
 
         scn_mgr.setAmbientLight((.1, .1, .1))
 
@@ -662,7 +705,7 @@ if __name__ == "__main__":
 
     if infile == "":
         infile = open_file_dialog()
-        if not infile or infile == "":
+        if not infile:
             print("ERROR: No file selected.")
             sys.exit(1)
 

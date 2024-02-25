@@ -516,6 +516,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         # explicitly add mesh location to be safe
         if not rgm.resourceLocationExists(self.filedir, Ogre.RGN_DEFAULT):
             rgm.addResourceLocation(self.filedir, "FileSystem", Ogre.RGN_DEFAULT)
+
+        # add fonts to default resource group
+        rgm.addResourceLocation(os.path.dirname(__file__) + "/fonts", "FileSystem", Ogre.RGN_DEFAULT)
         
     def loadResources(self):
         rgm = Ogre.ResourceGroupManager.getSingleton()
@@ -557,7 +560,6 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         imgui_overlay.addFont("Liberation/Sans", Ogre.RGN_DEFAULT)
         self.logwin.font = imgui_overlay.addFont("Liberation/Mono", Ogre.RGN_DEFAULT)
-        self.logwin.font.Scale = round(pixel_ratio)
 
         imgui_overlay.show()
         Ogre.Overlay.OverlayManager.getSingleton().addOverlay(imgui_overlay)

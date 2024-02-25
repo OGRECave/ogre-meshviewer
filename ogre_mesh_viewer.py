@@ -650,6 +650,6 @@ if __name__ == "__main__":
             app.getRoot().startRendering()
             app.closeApp()
         except RuntimeError as e:
-            Ogre.LogManager.getSingleton().logMessage(str(e))
+            raise SystemExit(e)
 
         if not app.restart: break

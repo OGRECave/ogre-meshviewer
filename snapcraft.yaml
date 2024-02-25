@@ -80,6 +80,7 @@ parts:
         source: https://github.com/OGRECave/ogre-meshviewer.git
         organize:
             ogre_mesh_viewer.py: bin/
+            fonts: bin/fonts
         stage:
             - bin/
         after: [ogre, desktop-glib-only]

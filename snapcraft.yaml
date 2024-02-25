@@ -48,7 +48,7 @@ parts:
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-15
         source: https://github.com/OGRECave/ogre.git
-        source-tag: master
+        source-tag: v14.2.0
         source-depth: 1
         build-packages:
             - libassimp-dev

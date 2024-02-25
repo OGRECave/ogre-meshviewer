@@ -8,7 +8,9 @@ cd winpkg
 
 curl -L https://dl.cloudsmith.io/public/ogrecave/ogre/raw/versions/v14.0.0/ogre-sdk-v14.0.0-msvc141-x64.zip -o ogre-sdk.zip
 curl -LO https://www.python.org/ftp/python/3.10.10/python-3.10.10-embed-amd64.zip
+curl -LO https://github.com/OGRECave/ogre-meshviewer/releases/download/24.02/tkinter_3.10.10-amd64.zip
 unzip python-3.10.10-embed-amd64.zip -d package
+unzip tkinter_3.10.10-amd64.zip -d package
 unzip ogre-sdk.zip
 
 # main

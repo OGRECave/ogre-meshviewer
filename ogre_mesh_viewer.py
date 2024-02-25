@@ -498,13 +498,6 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         # use parent implementation to locate system-wide RTShaderLib
         OgreBites.ApplicationContext.locateResources(self)
 
-        # allow override by local resources.cfg
-        if not self.getFSLayer().fileExists("resources.cfg"):
-            # look for SdkTrays.zip from the installation. On Windows there is a local resources.cfg
-            trays_loc = os.path.dirname(self.getFSLayer().getConfigFilePath("resources.cfg"))
-            trays_loc += "/Media/packs/SdkTrays.zip"
-            rgm.addResourceLocation(trays_loc, "Zip", RGN_MESHVIEWER)
-
         if self.rescfg:
             cfg = Ogre.ConfigFile()
             cfg.loadDirect(self.rescfg)
@@ -518,7 +511,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             rgm.addResourceLocation(self.filedir, "FileSystem", Ogre.RGN_DEFAULT)
 
         # add fonts to default resource group
-        rgm.addResourceLocation(os.path.dirname(__file__) + "/fonts", "FileSystem", Ogre.RGN_DEFAULT)
+        rgm.addResourceLocation(os.path.dirname(__file__) + "/fonts", "FileSystem", RGN_MESHVIEWER)
         
     def loadResources(self):
         rgm = Ogre.ResourceGroupManager.getSingleton()
@@ -558,8 +551,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         # for picking
         self.ray_query = scn_mgr.createRayQuery(Ogre.Ray())
 
-        imgui_overlay.addFont("Liberation/Sans", Ogre.RGN_DEFAULT)
-        self.logwin.font = imgui_overlay.addFont("Liberation/Mono", Ogre.RGN_DEFAULT)
+        imgui_overlay.addFont("UIText", RGN_MESHVIEWER)
+        self.logwin.font = imgui_overlay.addFont("LogText", RGN_MESHVIEWER)
 
         imgui_overlay.show()
         Ogre.Overlay.OverlayManager.getSingleton().addOverlay(imgui_overlay)

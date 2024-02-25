@@ -1,0 +1,15 @@
+font UIText
+{
+	type 		truetype
+	source 		Ubuntu-B.ttf
+	size 		15
+	resolution 	96
+}
+
+font LogText
+{
+	type 		truetype
+	source 		UbuntuMono-R.ttf
+	size 		15
+	resolution  96
+}

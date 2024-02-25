@@ -44,15 +44,6 @@ def show_vertex_decl(decl):
         ImGui.Text(str(e.getSource()))
     ImGui.EndTable()
 
-def config_option_combo(rs, option):
-    if ImGui.BeginCombo(option.name, option.currentValue):
-        for val in option.possibleValues:
-            is_selected = (option.currentValue == val)
-            if ImGui.Selectable(val, is_selected):
-                rs.setConfigOption(option.name, val)
-
-        ImGui.EndCombo()
-
 def printable(str):
     return str.encode("utf-8", "replace").decode()
 
@@ -132,8 +123,6 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         self.orig_mat = None
         self.logwin = app.logwin
 
-        self.selected_renderer = app.getRoot().getRenderSystem().getName()
-
         self.lod_idx_override = -1
 
     def draw_about(self):
@@ -151,27 +140,11 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         flags = ImGui.WindowFlags_AlwaysAutoResize
         self.show_render_settings = ImGui.Begin("Renderer Settings", self.show_render_settings, flags)[1]
 
-        #https://ogrecave.github.io/ogre/api/latest/class_ogre_1_1_root.html
-        if ImGui.BeginCombo("Renderer", self.selected_renderer):
-            for renderer in app.getRoot().getAvailableRenderers():
-                rname = renderer.getName()
-                is_selected = (self.selected_renderer == rname)
-                if ImGui.Selectable(rname, is_selected):
-                    self.selected_renderer = rname
-            ImGui.EndCombo()
-
-        ImGui.Separator()
-
-        rs = app.getRoot().getRenderSystemByName(self.selected_renderer)
-        config_options = rs.getConfigOptions()
-        #https://ogrecave.github.io/ogre/api/latest/struct_ogre_1_1_config_option.html
-        for config_option in config_options.values():
-            config_option_combo(rs, config_option)
+        Ogre.Overlay.DrawRenderingSettings(app.next_rendersystem)
 
         ImGui.Separator()
 
         if ImGui.Button("Apply & Restart"):
-            app.next_rendersystem = self.selected_renderer
             app.restart = True
             app.getRoot().queueEndRendering()
 
@@ -420,7 +393,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         self.active_controllers = {}
 
-        self.next_rendersystem = None
+        self.next_rendersystem = ""
 
         # in case we want to show the file dialog
         root = tk.Tk()

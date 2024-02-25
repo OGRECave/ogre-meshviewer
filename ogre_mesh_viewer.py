@@ -555,10 +555,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         # for picking
         self.ray_query = scn_mgr.createRayQuery(Ogre.Ray())
 
-        #imgui_overlay.addFont("SdkTrays/Value", RGN_MESHVIEWER)
-        #self.logwin.font = ImGui.GetIO().Fonts.AddFontDefault()
-        #self.logwin.font.Scale = round(pixel_ratio)
-        self.logwin.font = ImGui.GetIO().Fonts.AddFontFromFileTTF("LiberationSans-Regular.ttf", 20);
+        imgui_overlay.addFont("Liberation/Sans", Ogre.RGN_DEFAULT)
+        self.logwin.font = imgui_overlay.addFont("Liberation/Mono", Ogre.RGN_DEFAULT)
         self.logwin.font.Scale = round(pixel_ratio)
 
         imgui_overlay.show()

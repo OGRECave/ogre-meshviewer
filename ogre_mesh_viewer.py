@@ -57,6 +57,21 @@ def printable(str):
     return str.encode("utf-8", "replace").decode()
 
 def askopenfilename(initialdir=None):
+    import shutil
+    zenity = shutil.which("zenity")
+    if zenity:
+        import subprocess
+        infile = subprocess.run([zenity, "--file-selection",
+                                 "--title=Select Mesh File",
+                                 f"--filename={initialdir}/",
+                                 "--file-filter=All files|*",
+                                 "--file-filter=Ogre files|*.mesh *.scene",
+                                 "--file-filter=Common mesh files|*.obj *.fbx *.ply *.gltf *.glb"],
+                                 capture_output=True).stdout
+        if not infile:
+            return None
+        return infile.decode().strip()
+
     infile = filedialog.askopenfilename(
         title="Select Mesh File",
         initialdir=initialdir,

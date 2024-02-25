@@ -123,6 +123,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         self.show_about = False
         self.show_metrics = False
         self.show_render_settings = False
+        self.side_panel_visible = True
 
         self.app = app
 
@@ -216,6 +217,8 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
             if entity is not None and ImGui.BeginMenu("View"):
                 enode = entity.getParentSceneNode()
+                if ImGui.MenuItem("Show/Hide Side Panel", "N", self.app.axes_visible):
+                    self.side_panel_visible = not self.side_panel_visible
                 if ImGui.MenuItem("Show Axes", "A", self.app.axes_visible):
                     self.app._toggle_axes()
                 if ImGui.MenuItem("Show Bounding Box", "B", enode.getShowBoundingBox()):
@@ -251,6 +254,10 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         if self.app.attach_node is not None:
             # no sidebar yet when loading .scene
+            return
+
+        if self.side_panel_visible is False:
+            # hide side panel
             return
 
         # Mesh Info Sidebar
@@ -412,6 +419,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             self.getRoot().queueEndRendering()
         elif evt.keysym.sym == ord("b"):
             self._toggle_bbox()
+        elif evt.keysym.sym == ord("n"):
+            self.gui.side_panel_visible = not self.gui.side_panel_visible
         elif evt.keysym.sym == ord("a"):
             self._toggle_axes()
         elif evt.keysym.sym == ord("p"):

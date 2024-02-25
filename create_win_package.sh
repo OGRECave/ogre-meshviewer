@@ -38,4 +38,4 @@ cp ../win_resources.cfg package/resources.cfg
 cp -R Media/RTShaderLib Media/Main package/
 cp -R ../fonts package/
 
-mv package ogre-meshviewer_23.07-win64
+mv package ogre-meshviewer_24.02-win64

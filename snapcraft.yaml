@@ -1,5 +1,5 @@
 name: ogre-meshviewer
-version: "23.07"
+version: "24.02"
 confinement: strict
 summary: OGRE Mesh Viewer
 description: Viewer for .mesh model files as consumed by OGRE

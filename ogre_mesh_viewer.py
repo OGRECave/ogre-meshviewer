@@ -140,7 +140,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         flags = ImGui.WindowFlags_AlwaysAutoResize
         self.show_render_settings = ImGui.Begin("Renderer Settings", self.show_render_settings, flags)[1]
 
-        Ogre.Overlay.DrawRenderingSettings(app.next_rendersystem)
+        app.next_rendersystem = Ogre.Overlay.DrawRenderingSettings(app.next_rendersystem)
 
         ImGui.Separator()
 

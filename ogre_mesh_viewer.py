@@ -578,6 +578,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.axes = Ogre.DefaultDebugDrawer()
         self.axes.setStatic(True)
         self.axes.drawAxes(Ogre.Affine3.IDENTITY, diam / 4)
+        self.axes_visible = False
 
         if len(scn_mgr.getMovableObjects("Light")) == 0:
             # skip creating light, if scene already contains one
@@ -596,6 +597,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.addInputListener(self.input_dispatcher)
 
     def shutdown(self):
+        self.scn_mgr.removeListener(self.axes)
         Ogre.LogManager.getSingleton().getDefaultLog().removeListener(self.logwin)
         OgreBites.ApplicationContext.shutdown(self)
 

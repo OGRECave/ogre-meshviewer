@@ -13,6 +13,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 RGN_MESHVIEWER = "OgreMeshViewer"
+RGN_USERDATA   = "UserData"
 
 VES2STR = ("ERROR", "Position", "Blend Weights", "Blend Indices", "Normal", "Diffuse", "Specular", "Texcoord", "Binormal", "Tangent")
 VET2STR = ("float", "float2", "float3", "float4", "ERROR",
@@ -480,8 +481,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
                     rgm.addResourceLocation(loc, kind, sec)
 
         # explicitly add mesh location to be safe
-        if not rgm.resourceLocationExists(self.filedir, Ogre.RGN_DEFAULT):
-            rgm.addResourceLocation(self.filedir, "FileSystem", Ogre.RGN_DEFAULT)
+        if not rgm.resourceLocationExists(self.filedir, RGN_USERDATA):
+            rgm.addResourceLocation(self.filedir, "FileSystem", RGN_USERDATA)
 
         # add fonts to default resource group
         rgm.addResourceLocation(os.path.dirname(__file__) + "/fonts", "FileSystem", RGN_MESHVIEWER)
@@ -494,7 +495,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         # only capture default group
         self.logwin = LogWindow()
         Ogre.LogManager.getSingleton().getDefaultLog().addListener(self.logwin)
-        rgm.initialiseResourceGroup(Ogre.RGN_DEFAULT)
+        rgm.initialiseResourceGroup(RGN_USERDATA)
 
     def setup(self):
         if self.next_rendersystem:

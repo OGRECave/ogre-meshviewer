@@ -8,6 +8,7 @@ import Ogre.Overlay
 import Ogre.ImGui as ImGui
 
 import os.path
+import time
 
 import tkinter as tk
 from tkinter import filedialog
@@ -89,7 +90,8 @@ class LogWindow(Ogre.LogListener):
         self.font = None
     
     def messageLogged(self, msg, lvl, *args):
-        self.items.append((printable(msg.replace("%", "%%")), lvl))
+        ts = time.strftime("%T", time.localtime())
+        self.items.append((ts, printable(msg.replace("%", "%%")), lvl))
 
     def draw(self):
         if not self.show:
@@ -99,7 +101,11 @@ class LogWindow(Ogre.LogListener):
         self.show = ImGui.Begin("Log", self.show)[1]
 
         ImGui.PushFont(self.font)
-        for msg, lvl in self.items:
+        for ts, msg, lvl in self.items:
+            ImGui.PushStyleColor(ImGui.Col_Text, ImGui.ImVec4(0.6, 0.6, 0.6, 1))
+            ImGui.Text(ts)
+            ImGui.PopStyleColor()
+            ImGui.SameLine()
             if lvl == 4:
                 ImGui.PushStyleColor(ImGui.Col_Text, ImGui.ImVec4(1, 0.4, 0.4, 1))
             elif lvl == 3:

@@ -292,6 +292,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         if self.highlighted > -1:
             entity.getSubEntities()[self.highlighted].setMaterialName(self.orig_mat)
+            self.highlighted = -1
 
         if highlight > -1:
             self.orig_mat = printable(entity.getSubEntities()[highlight].getMaterial().getName())

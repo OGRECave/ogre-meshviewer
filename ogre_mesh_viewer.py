@@ -217,8 +217,9 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
             if entity is not None and ImGui.BeginMenu("View"):
                 enode = entity.getParentSceneNode()
-                if ImGui.MenuItem("Show/Hide Side Panel", "N", self.app.axes_visible):
+                if ImGui.MenuItem("Side Panel", "N", self.side_panel_visible):
                     self.side_panel_visible = not self.side_panel_visible
+                ImGui.Separator()
                 if ImGui.MenuItem("Show Axes", "A", self.app.axes_visible):
                     self.app._toggle_axes()
                 if ImGui.MenuItem("Show Bounding Box", "B", enode.getShowBoundingBox()):

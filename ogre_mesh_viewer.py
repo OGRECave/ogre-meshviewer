@@ -70,7 +70,7 @@ class MaterialCreator(Ogre.MeshSerializerListener):
             lmgr = Ogre.LogManager.getSingleton()
             try:
                 mat = mat_mgr.create(name, mesh.getGroup())
-                lmgr.logWarning("could not find material '{}'".format(printable(mat.getName())))
+                lmgr.logWarning(f"could not find material '{printable(mat.getName())}'")
             except RuntimeError:
                 # do not crash if name is ""
                 # this is illegal due to OGRE specs, but we want to show that in the UI
@@ -140,8 +140,8 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         ImGui.Text("OgreMeshViewer is licensed under the MIT License.")
         ImGui.Text("See LICENSE for more information.")
         ImGui.Separator()
-        ImGui.BulletText("Ogre:  %s" % Ogre.__version__)
-        ImGui.BulletText("ImGui: %s" % ImGui.GetVersion())
+        ImGui.BulletText(f"Ogre:  {Ogre.__version__}")
+        ImGui.BulletText(f"ImGui: {ImGui.GetVersion()}")
         ImGui.End()
 
     def draw_render_settings(self):
@@ -171,9 +171,9 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         self.show_metrics = ImGui.Begin("Metrics", self.show_metrics, flags)[1]
         ImGui.Text("Metrics")
         ImGui.Separator()
-        ImGui.Text("Average FPS: {:.2f}".format(stats.avgFPS))
-        ImGui.Text("Batches: {}".format(stats.batchCount))
-        ImGui.Text("Triangles: {}".format(stats.triangleCount))
+        ImGui.Text(f"Average FPS: {stats.avgFPS:.2f}")
+        ImGui.Text(f"Batches: {stats.batchCount}")
+        ImGui.Text(f"Triangles: {stats.triangleCount}")
         ImGui.End()
 
     def draw_loading(self):
@@ -274,30 +274,30 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         if ImGui.CollapsingHeader("Geometry"):
             if mesh.sharedVertexData:
-                if ImGui.TreeNode("Shared Vertices: {}".format(mesh.sharedVertexData.vertexCount)):
+                if ImGui.TreeNode(f"Shared Vertices: {mesh.sharedVertexData.vertexCount}"):
                     show_vertex_decl(mesh.sharedVertexData.vertexDeclaration)
                     ImGui.TreePop()
             else:
                 ImGui.Text("Shared Vertices: None")
 
             for i, sm in enumerate(mesh.getSubMeshes()):
-                submesh_details = ImGui.TreeNode("SubMesh #{}".format(i))
+                submesh_details = ImGui.TreeNode(f"SubMesh #{i}")
                 if ImGui.IsItemHovered():
                     highlight = i
 
                 if submesh_details:
-                    ImGui.BulletText("Material: {}".format(printable(sm.getMaterialName())))
+                    ImGui.BulletText(f"Material: {printable(sm.getMaterialName())}")
                     op = ROP2STR[sm.operationType] if sm.operationType <= 6 else "Control Points"
-                    ImGui.BulletText("Operation: {}".format(op))
+                    ImGui.BulletText(f"Operation: {op}")
 
                     if sm.indexData.indexCount:
                         bits = sm.indexData.indexBuffer.getIndexSize() * 8
-                        ImGui.BulletText("Indices: {} ({} bit)".format(sm.indexData.indexCount, bits))
+                        ImGui.BulletText(f"Indices: {sm.indexData.indexCount} ({bits} bit)")
                     else:
                         ImGui.BulletText("Indices: None")
 
                     if sm.vertexData:
-                        if ImGui.TreeNode("Vertices: {}".format(sm.vertexData.vertexCount)):
+                        if ImGui.TreeNode(f"Vertices: {sm.vertexData.vertexCount}"):
                             show_vertex_decl(sm.vertexData.vertexDeclaration)
                             ImGui.TreePop()
                     else:
@@ -318,7 +318,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             controller_mgr = Ogre.ControllerManager.getSingleton()
 
             if entity.hasSkeleton():
-                ImGui.Text("Skeleton: {}".format(mesh.getSkeletonName()))
+                ImGui.Text(f"Skeleton: {mesh.getSkeletonName()}")
                 # self.entity.setUpdateBoundingBoxFromSkeleton(True)
             if mesh.hasVertexAnimation():
                 ImGui.Text("Vertex Animations")
@@ -349,13 +349,13 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         lod_count = mesh.getNumLodLevels()
         if lod_count > 1 and ImGui.CollapsingHeader("LOD levels"):
             if self.lod_idx_override > -1:
-                 entity.setMeshLodBias(1, self.lod_idx_override, self.lod_idx_override)
+                entity.setMeshLodBias(1, self.lod_idx_override, self.lod_idx_override)
             else:
                 entity.setMeshLodBias(1)  # reset LOD override
             strategy = mesh.getLodStrategy().getName()
             curr_idx = entity.getCurrentLodIndex()
             ImGui.AlignTextToFramePadding()
-            ImGui.Text("Strategy: {}".format(strategy))
+            ImGui.Text(f"Strategy: {strategy}")
             ImGui.SameLine()
             
             if ImGui.Checkbox("active", self.lod_idx_override == -1)[1]:
@@ -364,7 +364,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                 self.lod_idx_override = curr_idx
             
             for i in range(lod_count):
-                txt = "Base Mesh" if i == 0 else "Level {}: {:.2f}".format(i, mesh.getLodLevel(i).userValue)
+                txt = "Base Mesh" if i == 0 else f"Level {i}: {mesh.getLodLevel(i).userValue:.2f}"
                 ImGui.Bullet()
                 if ImGui.Selectable(txt, i == curr_idx):
                     self.lod_idx_override = i
@@ -376,10 +376,10 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         if ImGui.CollapsingHeader("Bounds"):
             bounds = mesh.getBounds()
             s = bounds.getSize()
-            ImGui.BulletText("Size: {:.2f}, {:.2f}, {:.2f}".format(s[0], s[1], s[2]))
+            ImGui.BulletText(f"Size: {s[0]:.2f}, {s[1]:.2f}, {s[2]:.2f}")
             c = bounds.getCenter()
-            ImGui.BulletText("Center: {:.2f}, {:.2f}, {:.2f}".format(c[0], c[1], c[2]))
-            ImGui.BulletText("Radius: {:.2f}".format(mesh.getBoundingSphereRadius()))
+            ImGui.BulletText(f"Center: {c[0]:.2f}, {c[1]:.2f}, {c[2]:.2f}")
+            ImGui.BulletText(f"Radius: {mesh.getBoundingSphereRadius():.2f}")
 
         ImGui.End()
 
@@ -469,9 +469,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
     def _save_screenshot(self):
         name = os.path.splitext(self.filename)[0]
-        outpath = os.path.join(self.filedir, "screenshot_{}_".format(name))
+        outpath = os.path.join(self.filedir, f"screenshot_{name}_")
 
-        Ogre.LogManager.getSingleton().logMessage("Screenshot saved to folder: %s" % self.filedir)
+        Ogre.LogManager.getSingleton().logMessage(f"Screenshot saved to folder: {self.filedir}")
 
         self.cam.getViewport().setOverlaysEnabled(False)
         self.getRoot().renderOneFrame()

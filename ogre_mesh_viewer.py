@@ -638,6 +638,6 @@ if __name__ == "__main__":
             app.getRoot().startRendering()
             app.closeApp()
         except RuntimeError as e:
-            raise SystemExit(e)
+            raise SystemExit(e) from e
 
         if not app.restart: break

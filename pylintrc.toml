@@ -1,0 +1,4 @@
+[tool.pylint]
+extension-pkg-allow-list = "Ogre"
+disable = ["R", "C", "attribute-defined-outside-init", "redefined-builtin", "redefined-outer-name", "unused-argument", "protected-access"]
+enable = ["consider-using-f-string"]

@@ -12,9 +12,10 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y python3-pip python3-tk xvfb libxrandr2 libegl1
-        pip3 install ogre-python
+        pip3 install ogre-python pylint
     - uses: actions/checkout@v4
     - name: Test
       run: |
+        pylint ogre_mesh_viewer.py
         cd test
         xvfb-run timeout --preserve-status 5s python3 ../ogre_mesh_viewer.py cube.obj

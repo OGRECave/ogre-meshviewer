@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
+import os.path
+import time
+
+import tkinter as tk
+from tkinter import filedialog
+
 import Ogre
 import Ogre.RTShader as OgreRTShader
 import Ogre.Bites as OgreBites
 import Ogre.Overlay
 
 import Ogre.ImGui as ImGui
-
-import os.path
-import time
-
-import tkinter as tk
-from tkinter import filedialog
 
 RGN_MESHVIEWER = "OgreMeshViewer"
 RGN_USERDATA   = "UserData"

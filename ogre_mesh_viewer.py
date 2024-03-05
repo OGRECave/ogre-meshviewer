@@ -156,7 +156,6 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             app.restart = True
             app.getRoot().queueEndRendering()
 
-
         ImGui.End()
 
     def draw_metrics(self):
@@ -253,7 +252,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         self.logwin.draw()
 
-        if self.app.attach_node is not None:
+        if entity is None:
             # no sidebar yet when loading .scene
             return
 
@@ -381,9 +380,33 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             ImGui.BulletText(f"Center: {c[0]:.2f}, {c[1]:.2f}, {c[2]:.2f}")
             ImGui.BulletText(f"Radius: {mesh.getBoundingSphereRadius():.2f}")
 
-        ImGui.End()
+        if ImGui.CollapsingHeader("Transform"):
+            flags = ImGui.TableFlags_Borders | ImGui.TableFlags_SizingStretchProp
 
-        # ImGui.ShowDemoWindow()
+            enode = entity.getParentSceneNode()
+
+            p = [
+                round(enode.getPosition().x, 2),
+                round(enode.getPosition().y, 2),
+                round(enode.getPosition().z, 2)
+            ]
+            ImGui.BulletText(f"Position: {p[0]:.2f}, {p[1]:.2f}, {p[2]:.2f}")
+
+            o = [
+                round(enode.getOrientation().getYaw().valueDegrees(), 2),
+                round(enode.getOrientation().getPitch().valueDegrees(), 2),
+                round(enode.getOrientation().getRoll().valueDegrees(), 2)
+            ]
+            ImGui.BulletText(f"Orientation: {o[0]:.2f}, {o[1]:.2f}, {o[2]:.2f}")
+
+            s = [
+                round(enode.getScale().x, 2),
+                round(enode.getScale().y, 2),
+                round(enode.getScale().z, 2)
+            ]
+            ImGui.BulletText(f"Scale: {s[0]:.2f}, {s[1]:.2f}, {s[2]:.2f}")
+
+        ImGui.End()
 
 class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
@@ -432,22 +455,30 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         return True
 
     def mousePressed(self, evt):
-        if evt.clicks != 2:
-            return True
         vp = self.cam.getViewport()
         ray = self.cam.getCameraToViewportRay(evt.x / vp.getActualWidth(), evt.y / vp.getActualHeight())
         self.ray_query.setRay(ray)
+        self.ray_query.setSortByDistance(True)
         for hit in self.ray_query.execute():
-            self.camman.setPivotOffset(ray.getPoint(hit.distance))
+            if evt.button == OgreBites.BUTTON_RIGHT:
+                self.camman.setPivotOffset(ray.getPoint(hit.distance))
+                return True
+
+            if hit.movable:
+                if hit.movable.getMovableType() == "Entity":
+                    new_entity = self.scn_mgr.getEntity(hit.movable.getName())
+
+                    if evt.button == OgreBites.BUTTON_LEFT:
+                        if self.entity is not None:
+                            self.entity.getParentSceneNode().showBoundingBox(False)
+
+                        self.entity = new_entity
+                        self.entity.getParentSceneNode().showBoundingBox(True)
+
             break
         return True
 
     def _toggle_bbox(self):
-        if self.attach_node is not None:
-            show = self.attach_node.getCreator().getShowBoundingBoxes()
-            self.attach_node.getCreator().showBoundingBoxes(not show)
-            return
-
         enode = self.entity.getParentSceneNode()
         enode.showBoundingBox(not enode.getShowBoundingBox())
 

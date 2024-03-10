@@ -46,6 +46,20 @@ def show_vertex_decl(decl):
         ImGui.Text(str(e.getSource()))
     ImGui.EndTable()
 
+_rgbcol = ((1, 0.6, 0.6, 1), (0.6, 1, 0.6, 1), (0.6, 0.6, 1, 1))
+_xyzstr = ("X {0:.2f}", "Y {0:.2f}", "Z {0:.2f}")
+def draw_lbl_table_row(lbl, val, valstr = _xyzstr, valcol = _rgbcol):
+    ImGui.TableNextRow()
+    ImGui.TableNextColumn()
+    ImGui.Text(lbl)
+    for s, v, c in zip(valstr, val, valcol):
+        ImGui.TableNextColumn()
+        if v is None:
+            continue
+        ImGui.PushStyleColor(ImGui.Col_Text, ImGui.ImVec4(*c))
+        ImGui.Text(s.format(v))
+        ImGui.PopStyleColor()
+
 def printable(str):
     return str.encode("utf-8", "replace").decode()
 
@@ -374,24 +388,27 @@ class MeshViewerGui(Ogre.RenderTargetListener):
 
         if ImGui.CollapsingHeader("Bounds"):
             bounds = mesh.getBounds()
-            s = bounds.getSize()
-            ImGui.BulletText(f"Size: {s[0]:.2f}, {s[1]:.2f}, {s[2]:.2f}")
-            c = bounds.getCenter()
-            ImGui.BulletText(f"Center: {c[0]:.2f}, {c[1]:.2f}, {c[2]:.2f}")
-            ImGui.BulletText(f"Radius: {mesh.getBoundingSphereRadius():.2f}")
+
+            if ImGui.BeginTable("Bounds", 4, ImGui.TableFlags_SizingStretchProp):
+                s = bounds.getSize()
+                draw_lbl_table_row("Size", s)
+                c = bounds.getCenter()
+                draw_lbl_table_row("Center", c)
+                draw_lbl_table_row("Radius", (mesh.getBoundingSphereRadius(), None, None), ("{0:.2f}", None, None), ((1, 1, 1, 1), None, None))
+                ImGui.EndTable()
 
         if self.app.attach_node and ImGui.CollapsingHeader("Transform"):
             enode = entity.getParentSceneNode()
 
-            p = enode._getDerivedPosition()
-            ImGui.BulletText(f"Position: {p[0]:.2f}, {p[1]:.2f}, {p[2]:.2f}")
-
-            q = enode._getDerivedOrientation()
-            o = [q.getYaw().valueDegrees(), q.getPitch().valueDegrees(), q.getRoll().valueDegrees()]
-            ImGui.BulletText(f"Orientation: {o[0]:.2f}, {o[1]:.2f}, {o[2]:.2f}")
-
-            s = enode._getDerivedScale()
-            ImGui.BulletText(f"Scale: {s[0]:.2f}, {s[1]:.2f}, {s[2]:.2f}")
+            if ImGui.BeginTable("Transform", 4, ImGui.TableFlags_SizingStretchProp):
+                p = enode._getDerivedPosition()
+                draw_lbl_table_row("Position", p)
+                q = enode._getDerivedOrientation()
+                o = [q.getPitch().valueDegrees(), q.getYaw().valueDegrees(), q.getRoll().valueDegrees()]
+                draw_lbl_table_row("Orientation", o)
+                s = enode._getDerivedScale()
+                draw_lbl_table_row("Scale", s)
+                ImGui.EndTable()
 
         ImGui.End()
 

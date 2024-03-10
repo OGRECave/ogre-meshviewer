@@ -380,30 +380,17 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             ImGui.BulletText(f"Center: {c[0]:.2f}, {c[1]:.2f}, {c[2]:.2f}")
             ImGui.BulletText(f"Radius: {mesh.getBoundingSphereRadius():.2f}")
 
-        if ImGui.CollapsingHeader("Transform"):
-            flags = ImGui.TableFlags_Borders | ImGui.TableFlags_SizingStretchProp
-
+        if self.app.attach_node and ImGui.CollapsingHeader("Transform"):
             enode = entity.getParentSceneNode()
 
-            p = [
-                round(enode.getPosition().x, 2),
-                round(enode.getPosition().y, 2),
-                round(enode.getPosition().z, 2)
-            ]
+            p = enode._getDerivedPosition()
             ImGui.BulletText(f"Position: {p[0]:.2f}, {p[1]:.2f}, {p[2]:.2f}")
 
-            o = [
-                round(enode.getOrientation().getYaw().valueDegrees(), 2),
-                round(enode.getOrientation().getPitch().valueDegrees(), 2),
-                round(enode.getOrientation().getRoll().valueDegrees(), 2)
-            ]
+            q = enode._getDerivedOrientation()
+            o = [q.getYaw().valueDegrees(), q.getPitch().valueDegrees(), q.getRoll().valueDegrees()]
             ImGui.BulletText(f"Orientation: {o[0]:.2f}, {o[1]:.2f}, {o[2]:.2f}")
 
-            s = [
-                round(enode.getScale().x, 2),
-                round(enode.getScale().y, 2),
-                round(enode.getScale().z, 2)
-            ]
+            s = enode._getDerivedScale()
             ImGui.BulletText(f"Scale: {s[0]:.2f}, {s[1]:.2f}, {s[2]:.2f}")
 
         ImGui.End()
@@ -460,20 +447,17 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.ray_query.setRay(ray)
         self.ray_query.setSortByDistance(True)
         for hit in self.ray_query.execute():
-            if evt.button == OgreBites.BUTTON_RIGHT:
+            if evt.clicks == 2:
                 self.camman.setPivotOffset(ray.getPoint(hit.distance))
                 return True
+            
+            new_entity = hit.movable.castEntity()
+            if self.attach_node and new_entity and evt.button == OgreBites.BUTTON_LEFT:
+                if self.entity is not None:
+                    self.entity.getParentSceneNode().showBoundingBox(False)
 
-            if hit.movable:
-                if hit.movable.getMovableType() == "Entity":
-                    new_entity = self.scn_mgr.getEntity(hit.movable.getName())
-
-                    if evt.button == OgreBites.BUTTON_LEFT:
-                        if self.entity is not None:
-                            self.entity.getParentSceneNode().showBoundingBox(False)
-
-                        self.entity = new_entity
-                        self.entity.getParentSceneNode().showBoundingBox(True)
+                self.entity = new_entity
+                self.entity.getParentSceneNode().showBoundingBox(True)
 
             break
         return True

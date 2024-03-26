@@ -546,6 +546,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         Ogre.LogManager.getSingleton().getDefaultLog().addListener(self.logwin)
         rgm.initialiseResourceGroup(RGN_USERDATA)
 
+        rgm.setWorldResourceGroupName(RGN_USERDATA) # used by .scene loader
+
     def setup(self):
         if self.next_rendersystem:
             self.getRoot().setRenderSystem(self.getRoot().getRenderSystemByName(self.next_rendersystem))

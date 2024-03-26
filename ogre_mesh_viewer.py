@@ -220,10 +220,11 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     if app.infile:
                         app.restart = True
                         app.getRoot().queueEndRendering()
-                if ImGui.MenuItem("Renderer Settings"):
-                    self.show_render_settings = True
                 if ImGui.MenuItem("Save Screenshot", "P"):
                     self.app._save_screenshot()
+                ImGui.Separator()
+                if ImGui.MenuItem("Renderer Settings"):
+                    self.show_render_settings = True
                 if ImGui.MenuItem("Quit", "Esc"):
                     self.app.getRoot().queueEndRendering()
                 ImGui.EndMenu()

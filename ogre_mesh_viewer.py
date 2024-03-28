@@ -554,10 +554,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             self.getRoot().setRenderSystem(self.getRoot().getRenderSystemByName(self.next_rendersystem))
 
         OgreBites.ApplicationContext.setup(self)
-        self.addInputListener(self)
 
         self.restart = False
-        imgui_overlay = Ogre.Overlay.ImGuiOverlay()
+        imgui_overlay = self.initialiseImGui()
         ImGui.GetIO().IniFilename = self.getFSLayer().getWritablePath("imgui.ini")
 
         root = self.getRoot()
@@ -581,8 +580,6 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.logwin.font = imgui_overlay.addFont("LogText", RGN_MESHVIEWER)
 
         imgui_overlay.show()
-        Ogre.Overlay.OverlayManager.getSingleton().addOverlay(imgui_overlay)
-        imgui_overlay.disown()  # owned by OverlayMgr now
 
         shadergen = OgreRTShader.ShaderGenerator.getSingleton()
         shadergen.addSceneManager(scn_mgr)  # must be done before we do anything with the scene
@@ -645,8 +642,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.camman.setYawPitchDist(0, 0.3, diam)
         self.camman.setFixedYaw(False)
 
-        self.imgui_input = OgreBites.ImGuiInputListener()
-        self.input_dispatcher = OgreBites.InputListenerChain([self.imgui_input, self.camman])
+        self.input_dispatcher = OgreBites.InputListenerChain([self.getImGuiInputListener(), self.camman, self])
         self.addInputListener(self.input_dispatcher)
 
     def shutdown(self):

@@ -138,7 +138,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         self.show_metrics = False
         self.show_render_settings = False
         self.side_panel_visible = True
-        self.load_file_lock = False
+        self.is_filedialog_open = False
 
         self.app = app
 
@@ -201,20 +201,14 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         ImGui.Text("Loading..            ")
         ImGui.End()
 
-    def reload(self):
-        if app.infile:
-            app.restart = True
-            app.getRoot().queueEndRendering()
-
     def load_file(self):
         # Avoid recursive calling, which might block the window manager
-        if self.load_file_lock:
+        if self.is_filedialog_open:
             return
-        else:
-            self.load_file_lock = True
+        self.is_filedialog_open = True
         app.infile = askopenfilename(app.filedir)
-        self.load_file_lock = False
-        self.reload()
+        self.is_filedialog_open = False
+        app.reload()
 
     def preRenderTargetUpdate(self, evt):
         if not self.app.cam.getViewport().getOverlaysEnabled():
@@ -233,8 +227,8 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             if ImGui.BeginMenu("File"):
                 if ImGui.MenuItem("Open File", "F1"):
                     self.load_file()
-                if ImGui.MenuItem("ReLoad File", "F5"):
-                    self.reload()
+                if ImGui.MenuItem("Reload File", "F5"):
+                    app.reload()
                 if ImGui.MenuItem("Save Screenshot", "P"):
                     self.app._save_screenshot()
                 ImGui.Separator()
@@ -474,7 +468,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         elif evt.keysym.sym == OgreBites.SDLK_F1:
             self.gui.load_file()
         elif evt.keysym.sym == OgreBites.SDLK_F5:
-            self.gui.reload()
+            self.reload()
 
         return True
 
@@ -529,6 +523,11 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.getRoot().renderOneFrame()
         self.getRenderWindow().writeContentsToTimestampedFile(outpath, ".png")
         self.cam.getViewport().setOverlaysEnabled(True)
+
+    def reload(self):
+        if app.infile:
+            app.restart = True
+            app.getRoot().queueEndRendering()
 
     def locateResources(self):
         self.filename = os.path.basename(self.infile)

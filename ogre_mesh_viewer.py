@@ -138,7 +138,6 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         self.show_metrics = False
         self.show_render_settings = False
         self.side_panel_visible = True
-        self.is_filedialog_open = False
 
         self.app = app
 
@@ -202,12 +201,11 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         ImGui.End()
 
     def load_file(self):
-        # Avoid recursive calling, which might block the window manager
-        if self.is_filedialog_open:
+        infile = askopenfilename(app.filedir)
+        if not infile:
             return
-        self.is_filedialog_open = True
-        app.infile = askopenfilename(app.filedir)
-        self.is_filedialog_open = False
+
+        app.infile = infile
         app.reload()
 
     def preRenderTargetUpdate(self, evt):

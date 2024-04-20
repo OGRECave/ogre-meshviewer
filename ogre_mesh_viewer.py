@@ -240,14 +240,6 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                 enode = entity.getParentSceneNode()
                 if ImGui.MenuItem("Side Panel", "N", self.side_panel_visible):
                     self.side_panel_visible = not self.side_panel_visible
-                ImGui.Separator()
-                if ImGui.MenuItem("Show Axes", "A", self.app.axes_visible):
-                    self.app._toggle_axes()
-                if ImGui.MenuItem("Show Bounding Box", "B", enode.getShowBoundingBox()):
-                    self.app._toggle_bbox()
-                if ImGui.MenuItem("Wireframe Mode", "W", app.cam.getPolygonMode() == Ogre.PM_WIREFRAME):
-                    self.app._toggle_wireframe_mode()
-
                 if ImGui.BeginMenu("Fixed Camera Yaw"):
                     if ImGui.MenuItem("Disabled", "", self.app.fixed_yaw_axis == -1):
                         self.app.fixed_yaw_axis = -1
@@ -263,7 +255,13 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                         self.app.fixed_yaw_axis = 2
                         self.app.set_orientation()
                     ImGui.EndMenu()
-
+                ImGui.Separator()
+                if ImGui.MenuItem("Show Axes", "A", self.app.axes_visible):
+                    self.app._toggle_axes()
+                if ImGui.MenuItem("Show Bounding Box", "B", enode.getShowBoundingBox()):
+                    self.app._toggle_bbox()
+                if ImGui.MenuItem("Wireframe Mode", "W", app.cam.getPolygonMode() == Ogre.PM_WIREFRAME):
+                    self.app._toggle_wireframe_mode()
                 if entity.hasSkeleton() and ImGui.MenuItem("Show Skeleton", None, entity.getDisplaySkeleton()):
                     entity.setDisplaySkeleton(not entity.getDisplaySkeleton())
                 ImGui.EndMenu()
@@ -545,18 +543,16 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         camnode = self.camman.getCamera()
         diam = camnode.getPosition().length()
         camnode.setOrientation(Ogre.Quaternion.IDENTITY)
-        if self.fixed_yaw_axis >= 0:
-            camnode.setFixedYawAxis(True, self.fixed_yaw_axes[self.fixed_yaw_axis])
-            if self.fixed_yaw_axis == 0:
-                self.camman.setYawPitchDist(0, 0, diam)
-                camnode.roll(-Ogre.Degree(90))
-            elif self.fixed_yaw_axis == 1:
-                self.camman.setYawPitchDist(0, self.default_tilt, diam)
-            elif self.fixed_yaw_axis == 2:
-                self.camman.setYawPitchDist(0, self.default_tilt + Ogre.Degree(90), diam)
+        camnode.setFixedYawAxis(self.fixed_yaw_axis != -1, self.fixed_yaw_axes[self.fixed_yaw_axis])
+        self.camman.setFixedYaw(self.fixed_yaw_axis != -1)
+
+        if self.fixed_yaw_axis == 0:
+            self.camman.setYawPitchDist(0, 0, diam)
+            camnode.roll(-Ogre.Degree(90))
+        elif self.fixed_yaw_axis == 2:
+            self.camman.setYawPitchDist(0, self.default_tilt - Ogre.Degree(90), diam)
         else:
             self.camman.setYawPitchDist(0, self.default_tilt, diam)
-        self.camman.setFixedYaw(self.fixed_yaw_axis >= 0)
 
     def reload(self):
         if app.infile:

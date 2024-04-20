@@ -10,8 +10,9 @@ import Ogre
 import Ogre.RTShader as OgreRTShader
 import Ogre.Bites as OgreBites
 import Ogre.Overlay
-
 import Ogre.ImGui as ImGui
+
+import ogre_grid
 
 RGN_MESHVIEWER = "OgreMeshViewer"
 RGN_USERDATA   = "UserData"
@@ -258,6 +259,8 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                 ImGui.Separator()
                 if ImGui.MenuItem("Show Axes", "A", self.app.axes_visible):
                     self.app._toggle_axes()
+                if ImGui.MenuItem("Show Grid", "G", self.app.grid_visible):
+                    self.app._toggle_grid()
                 if ImGui.MenuItem("Show Bounding Box", "B", enode.getShowBoundingBox()):
                     self.app._toggle_bbox()
                 if ImGui.MenuItem("Wireframe Mode", "W", app.cam.getPolygonMode() == Ogre.PM_WIREFRAME):
@@ -458,6 +461,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.fixed_yaw_axes = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
         self.fixed_yaw_axis = 1
         self.default_tilt = Ogre.Degree(20)
+        self.grid_floor = None
+        self.grid_visible = True
 
         self.active_controllers = {}
 
@@ -476,6 +481,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             self.gui.side_panel_visible = not self.gui.side_panel_visible
         elif evt.keysym.sym == ord("a"):
             self._toggle_axes()
+        elif evt.keysym.sym == ord("g"):
+            self._toggle_grid()
         elif evt.keysym.sym == ord("p"):
             self._save_screenshot()
         elif evt.keysym.sym == ord("w"):
@@ -498,6 +505,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
                 return True
             
             new_entity = hit.movable.castEntity()
+
             if self.attach_node and new_entity and evt.button == OgreBites.BUTTON_LEFT:
                 if self.entity is not None:
                     self.entity.getParentSceneNode().showBoundingBox(False)
@@ -528,11 +536,19 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         
         self.axes_visible = not self.axes_visible
 
+    def _toggle_grid(self):
+        self.grid_visible = not self.grid_visible
+
+        if self.grid_visible:
+            self.grid_floor.show_plane(self.fixed_yaw_axis)
+        else:
+            self.grid_floor.show_plane(-1)
+
     def _save_screenshot(self):
         name = os.path.splitext(self.filename)[0]
         outpath = os.path.join(self.filedir, f"screenshot_{name}_")
 
-        Ogre.LogManager.getSingleton().logMessage(f"Screenshot saved to folder: {self.filedir}")
+        Ogre.LogManager.getSingleton().logMessage(f"Screenshot saved to folder: {os.path.normpath(self.filedir)}")
 
         self.cam.getViewport().setOverlaysEnabled(False)
         self.getRoot().renderOneFrame()
@@ -545,6 +561,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         camnode.setOrientation(Ogre.Quaternion.IDENTITY)
         camnode.setFixedYawAxis(self.fixed_yaw_axis != -1, self.fixed_yaw_axes[self.fixed_yaw_axis])
         self.camman.setFixedYaw(self.fixed_yaw_axis != -1)
+        if self.grid_visible:
+            self.grid_floor.show_plane(self.fixed_yaw_axis)
 
         if self.fixed_yaw_axis == 0:
             self.camman.setYawPitchDist(0, 0, diam)
@@ -584,7 +602,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         # add fonts to default resource group
         rgm.addResourceLocation(os.path.dirname(__file__) + "/fonts", "FileSystem", RGN_MESHVIEWER)
-        
+
     def loadResources(self):
         rgm = Ogre.ResourceGroupManager.getSingleton()
         rgm.initialiseResourceGroup(Ogre.RGN_INTERNAL)
@@ -652,6 +670,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.getRoot().renderOneFrame()
         self.getRoot().renderOneFrame()
 
+        Ogre.LogManager.getSingleton().logMessage(f"Opening file: {os.path.normpath(self.infile)}")
+
         if self.filename.lower().endswith(".scene"):
             self.attach_node = scn_mgr.getRootSceneNode().createChildSceneNode()
             self.attach_node.loadChildren(self.filename)
@@ -667,6 +687,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
                 diam = c.getDerivedPosition().length()
                 break
         else:
+            self.attach_node = None
             self.entity = scn_mgr.createEntity(self.filename)
             scn_mgr.getRootSceneNode().createChildSceneNode().attachObject(self.entity)
             diam = self.entity.getBoundingBox().getSize().length()
@@ -685,9 +706,15 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             light.setSpecularColour(Ogre.ColourValue.White)
             camnode.attachObject(light)
 
+        self.grid_floor = ogre_grid.GridFloor(scn_mgr, RGN_MESHVIEWER)
+        self.grid_floor.create_planes(diam)
+        if self.grid_visible:
+            self.grid_floor.show_plane(self.fixed_yaw_axis)
+
         self.camman = OgreBites.CameraMan(camnode)
         self.camman.setStyle(OgreBites.CS_ORBIT)
         self.camman.setYawPitchDist(0, self.default_tilt, diam)
+        self.set_orientation()
 
         self.input_dispatcher = OgreBites.InputListenerChain([self.getImGuiInputListener(), self.camman, self])
         self.addInputListener(self.input_dispatcher)

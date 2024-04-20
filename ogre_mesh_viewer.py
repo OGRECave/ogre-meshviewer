@@ -248,6 +248,22 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                 if ImGui.MenuItem("Wireframe Mode", "W", app.cam.getPolygonMode() == Ogre.PM_WIREFRAME):
                     self.app._toggle_wireframe_mode()
 
+                if ImGui.BeginMenu("Fixed Camera Yaw"):
+                    if ImGui.MenuItem("Disabled", "", self.app.fixed_yaw_axis == -1):
+                        self.app.fixed_yaw_axis = -1
+                        self.app.set_orientation()
+                    ImGui.Separator()
+                    if ImGui.MenuItem("X Axis", "", self.app.fixed_yaw_axis == 0):
+                        self.app.fixed_yaw_axis = 0
+                        self.app.set_orientation()
+                    if ImGui.MenuItem("Y Axis", "", self.app.fixed_yaw_axis == 1):
+                        self.app.fixed_yaw_axis = 1
+                        self.app.set_orientation()
+                    if ImGui.MenuItem("Z Axis", "", self.app.fixed_yaw_axis == 2):
+                        self.app.fixed_yaw_axis = 2
+                        self.app.set_orientation()
+                    ImGui.EndMenu()
+
                 if entity.hasSkeleton() and ImGui.MenuItem("Show Skeleton", None, entity.getDisplaySkeleton()):
                     entity.setDisplaySkeleton(not entity.getDisplaySkeleton())
                 ImGui.EndMenu()
@@ -441,6 +457,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.highlight_mat = None
         self.restart = False
         self.axes_visible = False
+        self.fixed_yaw_axes = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+        self.fixed_yaw_axis = 1
+        self.default_tilt = Ogre.Degree(20)
 
         self.active_controllers = {}
 
@@ -521,6 +540,23 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.getRoot().renderOneFrame()
         self.getRenderWindow().writeContentsToTimestampedFile(outpath, ".png")
         self.cam.getViewport().setOverlaysEnabled(True)
+
+    def set_orientation(self):
+        camnode = self.camman.getCamera()
+        diam = camnode.getPosition().length()
+        camnode.setOrientation(Ogre.Quaternion.IDENTITY)
+        if self.fixed_yaw_axis >= 0:
+            camnode.setFixedYawAxis(True, self.fixed_yaw_axes[self.fixed_yaw_axis])
+            if self.fixed_yaw_axis == 0:
+                self.camman.setYawPitchDist(0, 0, diam)
+                camnode.roll(-Ogre.Degree(90))
+            elif self.fixed_yaw_axis == 1:
+                self.camman.setYawPitchDist(0, self.default_tilt, diam)
+            elif self.fixed_yaw_axis == 2:
+                self.camman.setYawPitchDist(0, self.default_tilt + Ogre.Degree(90), diam)
+        else:
+            self.camman.setYawPitchDist(0, self.default_tilt, diam)
+        self.camman.setFixedYaw(self.fixed_yaw_axis >= 0)
 
     def reload(self):
         if app.infile:
@@ -655,8 +691,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         self.camman = OgreBites.CameraMan(camnode)
         self.camman.setStyle(OgreBites.CS_ORBIT)
-        self.camman.setYawPitchDist(0, 0.3, diam)
-        self.camman.setFixedYaw(False)
+        self.camman.setYawPitchDist(0, self.default_tilt, diam)
 
         self.input_dispatcher = OgreBites.InputListenerChain([self.getImGuiInputListener(), self.camman, self])
         self.addInputListener(self.input_dispatcher)

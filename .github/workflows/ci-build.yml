@@ -16,6 +16,6 @@ jobs:
     - uses: actions/checkout@v4
     - name: Test
       run: |
-        pylint ogre_mesh_viewer.py
+        pylint *.py
         cd test
         xvfb-run timeout --preserve-status 5s python3 ../ogre_mesh_viewer.py cube.obj

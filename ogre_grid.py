@@ -43,10 +43,10 @@ class GridFloor:
             plane_node.setVisible(p == plane)
 
     def create_material(self):
-        material = Ogre.MaterialManager.getSingleton().create(GRID_MATERIAL, self.resource_group);
-        p = material.getTechnique(0).getPass(0);
-        p.setLightingEnabled(False);
-        p.setVertexColourTracking(Ogre.TVC_AMBIENT);
+        material = Ogre.MaterialManager.getSingleton().create(GRID_MATERIAL, self.resource_group)
+        p = material.getTechnique(0).getPass(0)
+        p.setLightingEnabled(False)
+        p.setVertexColourTracking(Ogre.TVC_AMBIENT)
 
     def create_planes(self, diam):
         self.create_material()
@@ -56,7 +56,6 @@ class GridFloor:
             subdiv = 1
 
         for plane in range(0, 3):
-            plane_name = "MeshViewer/" + self.plane_names[plane]
             self.create_plane(plane, int(math.ceil(diam)), subdiv)
 
     def create_plane(self, plane, diam, subdiv):
@@ -90,7 +89,7 @@ class GridFloor:
             Ogre.Vector3(normal[2], normal[0], normal[1])
             ]
 
-        o = self.scn_mgr.createManualObject(plane_name);
+        o = self.scn_mgr.createManualObject(plane_name)
         o.begin(GRID_MATERIAL, Ogre.RenderOperation.OT_LINE_LIST, self.resource_group)
         o.setQueryFlags(0)
 

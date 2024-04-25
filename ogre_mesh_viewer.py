@@ -12,8 +12,6 @@ import Ogre.Bites as OgreBites
 import Ogre.Overlay
 import Ogre.ImGui as ImGui
 
-import ogre_grid
-
 RGN_MESHVIEWER = "OgreMeshViewer"
 RGN_USERDATA   = "UserData"
 
@@ -72,6 +70,54 @@ def askopenfilename(initialdir=None):
                    ("Ogre files", "*.mesh *.scene"),
                    ("Common mesh files", "*.obj *.fbx *.ply *.gltf *.glb ")])
     return infile
+
+class GridFloor:
+    def __init__(self, scale, parent_node):
+        self.material = Ogre.MaterialManager.getSingleton().create("VertexColour", RGN_MESHVIEWER)
+        p = self.material.getTechnique(0).getPass(0)
+        p.setLightingEnabled(False)
+        p.setVertexColourTracking(Ogre.TVC_AMBIENT)
+
+        self.plane_node = parent_node.createChildSceneNode()
+        self.plane_node.setScale(scale, scale, scale)
+
+        self.planes = [self._create_plane(i) for i in range(3)]
+
+    def show_plane(self, plane):
+        for i, grid in enumerate(self.planes):
+            grid.setVisible(i == plane)
+
+    def _create_plane(self, plane):
+        normal = [0, 0, 0]
+        normal[plane] = 1
+
+        axis_color = [[0, 0, 0], [0, 0, 0]]
+        axis_color[0][(plane + 2) % 3] = 1
+        axis_color[1][(plane + 1) % 3] = 1
+
+        grid_color = (0.2, 0.2, 0.2)
+
+        # Compute the other axes based on the normal vector
+        axis = [Ogre.Vector3(normal[1], normal[2], normal[0]),
+                Ogre.Vector3(normal[2], normal[0], normal[1])]
+
+        o = self.plane_node.getCreator().createManualObject(f"MeshViewer/plane{plane}")
+        o.begin(self.material, Ogre.RenderOperation.OT_LINE_LIST)
+        o.setQueryFlags(0)
+        o.setVisible(False)
+
+        for i in range(2):
+            for j in range(-5, 6):
+                cl = axis_color[i] if j == 0 else grid_color
+                o.position(-axis[i] + axis[1 - i] * j/5)
+                o.colour(cl)
+                o.position(axis[i]  + axis[1 - i] * j/5)
+                o.colour(cl)
+
+        o.end()
+
+        self.plane_node.attachObject(o)
+        return o
 
 class MaterialCreator(Ogre.MeshSerializerListener):
 
@@ -706,8 +752,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             light.setSpecularColour(Ogre.ColourValue.White)
             camnode.attachObject(light)
 
-        self.grid_floor = ogre_grid.GridFloor(scn_mgr, RGN_MESHVIEWER)
-        self.grid_floor.create_planes(diam)
+        self.grid_floor = GridFloor(diam, scn_mgr.getRootSceneNode())
         if self.grid_visible:
             self.grid_floor.show_plane(self.fixed_yaw_axis)
 

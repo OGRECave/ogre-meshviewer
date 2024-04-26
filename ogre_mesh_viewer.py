@@ -302,6 +302,8 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                         self.app.fixed_yaw_axis = 2
                         self.app.update_fixed_camera_yaw()
                     ImGui.EndMenu()
+                if ImGui.MenuItem("Switch Camera Projection", "KP5"):
+                    self.app._toggle_projection()
                 ImGui.Separator()
                 if ImGui.MenuItem("Show Axes", "A", self.app.axes_visible):
                     self.app._toggle_axes()
@@ -521,6 +523,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
     def keyPressed(self, evt):
         if evt.keysym.sym == OgreBites.SDLK_ESCAPE:
             self.getRoot().queueEndRendering()
+        if evt.keysym.sym == OgreBites.SDLK_KP_5:
+            self._toggle_projection()
         elif evt.keysym.sym == ord("b"):
             self._toggle_bbox()
         elif evt.keysym.sym == ord("n"):
@@ -558,8 +562,16 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
                 self.entity = new_entity
                 self.entity.getParentSceneNode().showBoundingBox(True)
-
             break
+
+        return True
+
+    def mouseWheelRolled(self, evt):
+        if self.cam.getProjectionType() == Ogre.PT_ORTHOGRAPHIC:
+            camnode = self.camman.getCamera()
+            diam = camnode.getPosition().length()
+            self.cam.setOrthoWindowHeight(diam)
+
         return True
 
     def _toggle_bbox(self):
@@ -589,6 +601,15 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             self.grid_floor.show_plane(self.fixed_yaw_axis)
         else:
             self.grid_floor.show_plane(-1)
+
+    def _toggle_projection(self):
+        if self.cam.getProjectionType() == Ogre.PT_PERSPECTIVE:
+            self.cam.setProjectionType(Ogre.PT_ORTHOGRAPHIC)
+            camnode = self.camman.getCamera()
+            diam = camnode.getPosition().length()
+            self.cam.setOrthoWindowHeight(diam)
+        else:
+            self.cam.setProjectionType(Ogre.PT_PERSPECTIVE)
 
     def _save_screenshot(self):
         name = os.path.splitext(self.filename)[0]

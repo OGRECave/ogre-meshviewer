@@ -290,17 +290,17 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                 if ImGui.BeginMenu("Fixed Camera Yaw"):
                     if ImGui.MenuItem("Disabled", "", self.app.fixed_yaw_axis == -1):
                         self.app.fixed_yaw_axis = -1
-                        self.app.set_orientation()
+                        self.app.update_fixed_camera_yaw()
                     ImGui.Separator()
                     if ImGui.MenuItem("X Axis", "", self.app.fixed_yaw_axis == 0):
                         self.app.fixed_yaw_axis = 0
-                        self.app.set_orientation()
+                        self.app.update_fixed_camera_yaw()
                     if ImGui.MenuItem("Y Axis", "", self.app.fixed_yaw_axis == 1):
                         self.app.fixed_yaw_axis = 1
-                        self.app.set_orientation()
+                        self.app.update_fixed_camera_yaw()
                     if ImGui.MenuItem("Z Axis", "", self.app.fixed_yaw_axis == 2):
                         self.app.fixed_yaw_axis = 2
-                        self.app.set_orientation()
+                        self.app.update_fixed_camera_yaw()
                     ImGui.EndMenu()
                 ImGui.Separator()
                 if ImGui.MenuItem("Show Axes", "A", self.app.axes_visible):
@@ -601,7 +601,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.getRenderWindow().writeContentsToTimestampedFile(outpath, ".png")
         self.cam.getViewport().setOverlaysEnabled(True)
 
-    def set_orientation(self):
+    def update_fixed_camera_yaw(self):
         camnode = self.camman.getCamera()
         diam = camnode.getPosition().length()
         camnode.setOrientation(Ogre.Quaternion.IDENTITY)
@@ -753,13 +753,11 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
             camnode.attachObject(light)
 
         self.grid_floor = GridFloor(diam, scn_mgr.getRootSceneNode())
-        if self.grid_visible:
-            self.grid_floor.show_plane(self.fixed_yaw_axis)
 
         self.camman = OgreBites.CameraMan(camnode)
         self.camman.setStyle(OgreBites.CS_ORBIT)
-        self.camman.setYawPitchDist(0, self.default_tilt, diam)
-        self.set_orientation()
+
+        self.update_fixed_camera_yaw()
 
         self.input_dispatcher = OgreBites.InputListenerChain([self.getImGuiInputListener(), self.camman, self])
         self.addInputListener(self.input_dispatcher)

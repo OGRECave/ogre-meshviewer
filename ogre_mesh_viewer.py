@@ -302,7 +302,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                         self.app.fixed_yaw_axis = 2
                         self.app.update_fixed_camera_yaw()
                     ImGui.EndMenu()
-                if ImGui.MenuItem("Switch Camera Projection", "KP5"):
+                if ImGui.MenuItem("Orthographic Projection", "KP5", self.app.cam.getProjectionType() == Ogre.PT_ORTHOGRAPHIC):
                     self.app._toggle_projection()
                 ImGui.Separator()
                 if ImGui.MenuItem("Show Axes", "A", self.app.axes_visible):

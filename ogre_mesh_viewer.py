@@ -618,6 +618,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         Ogre.LogManager.getSingleton().logMessage(f"Screenshot saved to folder: {os.path.normpath(self.filedir)}")
 
         self.cam.getViewport().setOverlaysEnabled(False)
+        # We need two to really hide the Overlay (ImGUI)
+        self.getRoot().renderOneFrame()
         self.getRoot().renderOneFrame()
         self.getRenderWindow().writeContentsToTimestampedFile(outpath, ".png")
         self.cam.getViewport().setOverlaysEnabled(True)

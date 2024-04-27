@@ -780,6 +780,8 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.camman = OgreBites.CameraMan(camnode)
         self.camman.setStyle(OgreBites.CS_ORBIT)
 
+        # We need to set YawPitchDist to initial values, so "diam" is properly set
+        self.camman.setYawPitchDist(0, self.default_tilt, diam)
         self.update_fixed_camera_yaw()
 
         self.input_dispatcher = OgreBites.InputListenerChain([self.getImGuiInputListener(), self.camman, self])

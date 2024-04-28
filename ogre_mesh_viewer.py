@@ -506,7 +506,6 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.highlight_mat = None
         self.restart = False
         self.axes_visible = False
-        self.fixed_yaw_axes = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
         self.fixed_yaw_axis = 1
         self.default_tilt = Ogre.Degree(20)
         self.grid_floor = None
@@ -626,7 +625,10 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         camnode = self.camman.getCamera()
         diam = camnode.getPosition().length()
         camnode.setOrientation(Ogre.Quaternion.IDENTITY)
-        camnode.setFixedYawAxis(self.fixed_yaw_axis != -1, self.fixed_yaw_axes[self.fixed_yaw_axis])
+
+        yaw_axis = [0, 0, 0]
+        yaw_axis[self.fixed_yaw_axis] = 1
+        camnode.setFixedYawAxis(self.fixed_yaw_axis != -1, yaw_axis)
         self.camman.setFixedYaw(self.fixed_yaw_axis != -1)
         if self.grid_visible:
             self.grid_floor.show_plane(self.fixed_yaw_axis)

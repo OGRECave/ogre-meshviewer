@@ -229,11 +229,23 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                 ImGui.WindowFlags_AlwaysAutoResize | ImGui.WindowFlags_NoSavedSettings | ImGui.WindowFlags_NoFocusOnAppearing | \
                 ImGui.WindowFlags_NoNav
         self.show_metrics = ImGui.Begin("Metrics", self.show_metrics, flags)[1]
+
+        stats_dict = {
+            "Average FPS":  f"{stats.avgFPS:.2f}",
+            "Batches":      f"{stats.batchCount}",
+            "Triangles":    f"{stats.triangleCount}"
+        }
+
         ImGui.Text("Metrics")
         ImGui.Separator()
-        ImGui.Text(f"Average FPS: {stats.avgFPS:.2f}")
-        ImGui.Text(f"Batches: {stats.batchCount}")
-        ImGui.Text(f"Triangles: {stats.triangleCount}")
+        if ImGui.BeginTable("Metrics", 2):
+            for stat, value in stats_dict.items():
+                ImGui.TableNextRow()
+                ImGui.TableSetColumnIndex(0)
+                ImGui.Text(stat)
+                ImGui.TableSetColumnIndex(1)
+                ImGui.Text(value)
+            ImGui.EndTable()
         ImGui.End()
 
     def draw_loading(self):

@@ -799,6 +799,10 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.input_dispatcher = OgreBites.InputListenerChain([self.getImGuiInputListener(), self.camman, self])
         self.addInputListener(self.input_dispatcher)
 
+    def windowResized(self, win):
+        # remember the resolution for next start
+        self.getRoot().getRenderSystem().setConfigOption("Video Mode", f"{win.getWidth()} x {win.getHeight()}")
+
     def shutdown(self):
         self.scn_mgr.removeListener(self.axes)
         Ogre.LogManager.getSingleton().getDefaultLog().removeListener(self.logwin)

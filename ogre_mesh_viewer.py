@@ -748,7 +748,9 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.gui = MeshViewerGui(self)
         self.getRenderWindow().addListener(self.gui)
 
-        self.getRoot().renderOneFrame()
+        # imgui needs warmup to render on first frame
+        # see https://github.com/ocornut/imgui/issues/1893#issuecomment-399102821
+        self.getRenderWindow().update(False)
         self.getRoot().renderOneFrame()
 
         Ogre.LogManager.getSingleton().logMessage(f"Opening file: {os.path.normpath(self.infile)}")

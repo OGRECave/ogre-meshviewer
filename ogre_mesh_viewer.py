@@ -629,7 +629,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         Ogre.LogManager.getSingleton().logMessage(f"Screenshot saved to folder: {os.path.normpath(self.filedir)}")
 
         self.cam.getViewport().setOverlaysEnabled(False)
-        self.getRoot().renderOneFrame()
+        self.getRenderWindow().update(False)
         self.getRenderWindow().writeContentsToTimestampedFile(outpath, ".png")
         self.cam.getViewport().setOverlaysEnabled(True)
 

@@ -402,6 +402,9 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                         ImGui.BulletText("Vertices: shared")
                     ImGui.TreePop()
 
+            if mesh.getEdgeList():
+                ImGui.Text("EdgeLists present")
+
         if self.highlighted > -1:
             entity.getSubEntities()[self.highlighted].setMaterialName(self.orig_mat)
             self.highlighted = -1

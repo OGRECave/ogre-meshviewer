@@ -437,13 +437,13 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                         astate.setEnabled(True)
                         self.app.active_controllers[name] = controller_mgr.createFrameTimePassthroughController(
                             Ogre.AnimationStateControllerValue.create(astate, True))
-                    changed = False
+
                     if astate.getLength() > 0:
                         ImGui.SameLine()
                         changed, value = ImGui.SliderFloat("", astate.getTimePosition(), 0, astate.getLength(), "%.3fs")
-                    if changed:
-                        astate.setEnabled(True)
-                        astate.setTimePosition(value)
+                        if changed:
+                            astate.setEnabled(True)
+                            astate.setTimePosition(value)
                     ImGui.PopID()
                     ImGui.TreePop()
 

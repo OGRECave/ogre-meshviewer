@@ -285,7 +285,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                 if ImGui.MenuItem("Open File", "F1"):
                     self.load_file()
                 if ImGui.MenuItem("Reload File", "F5"):
-                    app.reload()
+                    app.reload(keep_cam=True)
                 if ImGui.MenuItem("Save Screenshot", "P"):
                     self.app._save_screenshot()
                 ImGui.Separator()
@@ -529,6 +529,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         self.active_controllers = {}
 
         self.next_rendersystem = ""
+        self.next_campose = None
 
         # in case we want to show the file dialog
         root = tk.Tk()
@@ -554,7 +555,7 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         elif evt.keysym.sym == OgreBites.SDLK_F1:
             self.gui.load_file()
         elif evt.keysym.sym == OgreBites.SDLK_F5:
-            self.reload()
+            self.reload(keep_cam=True)
 
         return True
 
@@ -648,7 +649,11 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         if self.grid_visible:
             self.grid_floor.show_plane(self.fixed_yaw_axis)
 
-        if self.fixed_yaw_axis == 0:
+        if self.next_campose:
+            camnode.setPosition(self.next_campose[0])
+            camnode.setOrientation(self.next_campose[1])
+            self.next_campose = None
+        elif self.fixed_yaw_axis == 0:
             self.camman.setYawPitchDist(0, 0, diam)
             camnode.roll(-Ogre.Degree(90))
         elif self.fixed_yaw_axis == 2:
@@ -656,10 +661,17 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         else:
             self.camman.setYawPitchDist(0, self.default_tilt, diam)
 
-    def reload(self):
-        if app.infile:
-            app.restart = True
-            app.getRoot().queueEndRendering()
+    def reload(self, keep_cam=False):
+        if not app.infile:
+            return
+
+        if keep_cam:
+            camnode = self.camman.getCamera()
+            # multiply to store a copy instead of a reference
+            self.next_campose = (camnode.getPosition()*1, camnode.getOrientation()*1)
+
+        app.restart = True
+        app.getRoot().queueEndRendering()
 
     def locateResources(self):
         self.filename = os.path.basename(self.infile)

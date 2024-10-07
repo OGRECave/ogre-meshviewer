@@ -198,9 +198,12 @@ class MeshViewerGui(Ogre.RenderTargetListener):
     def draw_about(self):
         flags = ImGui.WindowFlags_AlwaysAutoResize
         self.show_about = ImGui.Begin("About OgreMeshViewer", self.show_about, flags)[1]
-        ImGui.Text("By Pavel Rojtberg")
-        ImGui.Text("OgreMeshViewer is licensed under the MIT License.")
-        ImGui.Text("See LICENSE for more information.")
+        ImGui.TextLinkOpenURL("OgreMeshViewer", "https://github.com/OGRECave/ogre-meshviewer")
+        ImGui.SameLine(0, 0)
+        ImGui.Text(" is licensed under the ")
+        ImGui.SameLine(0, 0)
+        ImGui.TextLinkOpenURL("MIT License.", "https://github.com/OGRECave/ogre-meshviewer/blob/master/LICENSE")
+        ImGui.Text("by Pavel Rojtberg and contributors.")
         ImGui.Separator()
         ImGui.BulletText(f"Ogre:  {Ogre.__version__}")
         ImGui.BulletText(f"ImGui: {ImGui.GetVersion()}")

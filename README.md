@@ -18,7 +18,7 @@ Viewer for `.mesh` model files as consumed by OGRE as well as any format [suppor
 [Portable Windows Package](https://github.com/OGRECave/ogre-meshviewer/releases)
 
 # Dependencies
-* [ogre-python](https://pypi.org/project/ogre-python/) >= 14.2
+* [ogre-python](https://pypi.org/project/ogre-python/) >= 14.3
 * python3
 
 # Usage

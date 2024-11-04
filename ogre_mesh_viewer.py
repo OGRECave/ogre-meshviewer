@@ -286,16 +286,16 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         if ImGui.BeginMainMenuBar():
 
             if ImGui.BeginMenu("File"):
-                if ImGui.MenuItem("Open File", "F1"):
+                if ImGui.MenuItem("\uf115 Open File", "F1"):
                     self.load_file()
-                if ImGui.MenuItem("Reload File", "F5"):
+                if ImGui.MenuItem("\uf021 Reload File", "F5"):
                     app.reload(keep_cam=True)
-                if ImGui.MenuItem("Save Screenshot", "P"):
+                if ImGui.MenuItem("\uf03e Save Screenshot", "P"):
                     self.app._save_screenshot()
                 ImGui.Separator()
-                if ImGui.MenuItem("Renderer Settings"):
+                if ImGui.MenuItem("\uf013 Renderer Settings"):
                     self.show_render_settings = True
-                if ImGui.MenuItem("Quit", "Esc"):
+                if ImGui.MenuItem("\uf00d Quit", "Esc"):
                     self.app.getRoot().queueEndRendering()
                 ImGui.EndMenu()
 
@@ -334,11 +334,11 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                 ImGui.EndMenu()
 
             if ImGui.BeginMenu("Help"):
-                if ImGui.MenuItem("Metrics", None, self.show_metrics):
+                if ImGui.MenuItem("\uf080 Metrics", None, self.show_metrics):
                     self.show_metrics = not self.show_metrics
-                if ImGui.MenuItem("Log"):
+                if ImGui.MenuItem("\uf1da Log"):
                     self.logwin.show = True
-                if ImGui.MenuItem("About"):
+                if ImGui.MenuItem("\uf2c2 About"):
                     self.show_about = True
                 ImGui.EndMenu()
 
@@ -370,7 +370,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         ImGui.SetNextWindowPos(ImGui.ImVec2(0, ImGui.GetFontSize()*1.5))
         flags = ImGui.WindowFlags_NoTitleBar | ImGui.WindowFlags_NoMove
         ImGui.Begin("MeshProps", None, flags)
-        ImGui.Text(mesh.getName())
+        ImGui.Text("\uf016 "+mesh.getName())
 
         highlight = -1
 
@@ -380,7 +380,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     show_vertex_decl(mesh.sharedVertexData.vertexDeclaration)
                     ImGui.TreePop()
             else:
-                ImGui.Text("Shared Vertices: None")
+                ImGui.Text("\uf0c1 Shared Vertices: None")
 
             for i, sm in enumerate(mesh.getSubMeshes()):
                 submesh_details = ImGui.TreeNode(f"SubMesh #{i}")
@@ -388,13 +388,13 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     highlight = i
 
                 if submesh_details:
-                    ImGui.BulletText(f"Material: {printable(sm.getMaterialName())}")
+                    ImGui.BulletText(f"\uf1b2 Material: {printable(sm.getMaterialName())}")
                     op = ROP2STR[sm.operationType] if sm.operationType <= 6 else "Control Points"
-                    ImGui.BulletText(f"Operation: {op}")
+                    ImGui.BulletText(f"\uf06e Operation: {op}")
 
                     if sm.indexData.indexCount:
                         bits = sm.indexData.indexBuffer.getIndexSize() * 8
-                        ImGui.BulletText(f"Indices: {sm.indexData.indexCount} ({bits} bit)")
+                        ImGui.BulletText(f"\uf292 Indices: {sm.indexData.indexCount} ({bits} bit)")
                     else:
                         ImGui.BulletText("Indices: None")
 
@@ -407,7 +407,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     ImGui.TreePop()
 
             if mesh.getEdgeList():
-                ImGui.Text("EdgeLists present")
+                ImGui.Text("\uf05a EdgeLists present")
 
         if self.highlighted > -1:
             entity.getSubEntities()[self.highlighted].setMaterialName(self.orig_mat)

@@ -260,7 +260,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         ImGui.Begin("Loading", True, flags)
         ImGui.Text(self.app.filename)
         ImGui.Separator()
-        ImGui.Text("Loading..            ")
+        ImGui.Text("\uf252 Loading..            ")
         ImGui.End()
 
     def load_file(self):
@@ -286,9 +286,9 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         if ImGui.BeginMainMenuBar():
 
             if ImGui.BeginMenu("File"):
-                if ImGui.MenuItem("Open File", "F1"):
+                if ImGui.MenuItem("Open..", "F1"):
                     self.load_file()
-                if ImGui.MenuItem("Reload File", "F5"):
+                if ImGui.MenuItem("Reload", "F5"):
                     app.reload(keep_cam=True)
                 if ImGui.MenuItem("Save Screenshot", "P"):
                     self.app._save_screenshot()
@@ -372,7 +372,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         ImGui.SetNextWindowPos(ImGui.ImVec2(0, ImGui.GetFontSize()*1.5))
         flags = ImGui.WindowFlags_NoTitleBar | ImGui.WindowFlags_NoMove
         ImGui.Begin("MeshProps", None, flags)
-        ImGui.Text(mesh.getName())
+        ImGui.Text("\uf016 "+mesh.getName())
 
         highlight = -1
 
@@ -409,7 +409,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     ImGui.TreePop()
 
             if mesh.getEdgeList():
-                ImGui.Text("EdgeLists present")
+                ImGui.Text("\uf05a EdgeLists present")
 
         if self.highlighted > -1:
             entity.getSubEntities()[self.highlighted].setMaterialName(self.orig_mat)
@@ -425,21 +425,21 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             controller_mgr = Ogre.ControllerManager.getSingleton()
 
             if entity.hasSkeleton():
-                ImGui.Text(f"Skeleton: {mesh.getSkeletonName()}")
+                ImGui.Text(f"\uf183 Skeleton: {mesh.getSkeletonName()}")
                 # self.entity.setUpdateBoundingBoxFromSkeleton(True)
             if mesh.hasVertexAnimation():
-                ImGui.Text("Vertex Animations")
+                ImGui.Text("\uf1e0 Vertex Animations")
 
             for name, astate in animations.getAnimationStates().items():
                 if ImGui.TreeNode(name):
                     ImGui.PushID(name)
                     if astate.getEnabled():
-                        if ImGui.Button("Reset"):
+                        if ImGui.Button("\uf048 Reset"):
                             astate.setEnabled(False)
                             astate.setTimePosition(0)
                             if name in self.app.active_controllers:
                                 controller_mgr.destroyController(self.app.active_controllers[name])
-                    elif ImGui.Button("Play"):
+                    elif ImGui.Button("\uf04b Play"):
                         astate.setEnabled(True)
                         self.app.active_controllers[name] = controller_mgr.createFrameTimePassthroughController(
                             Ogre.AnimationStateControllerValue.create(astate, True))

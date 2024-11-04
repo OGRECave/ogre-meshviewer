@@ -1,9 +1,19 @@
+font Icons
+{
+	type 		truetype
+	source 		forkawesome-webfont.ttf
+	size 		15
+	resolution 	96
+	code_points 0xf000-0xf2e0
+}
+
 font UIText
 {
 	type 		truetype
 	source 		Ubuntu-B.ttf
 	size 		15
 	resolution 	96
+	merge_fonts Icons
 }
 
 font LogText

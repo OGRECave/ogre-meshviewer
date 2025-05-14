@@ -299,8 +299,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     self.app.getRoot().queueEndRendering()
                 ImGui.EndMenu()
 
-            if entity is not None and ImGui.BeginMenu("View"):
-                enode = entity.getParentSceneNode()
+            if ImGui.BeginMenu("View"):
                 if ImGui.MenuItem("Side Panel", "N", self.side_panel_visible):
                     self.side_panel_visible = not self.side_panel_visible
                 if ImGui.BeginMenu("Fixed Camera Yaw"):
@@ -320,16 +319,19 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     ImGui.EndMenu()
                 if ImGui.MenuItem("Orthographic Projection", "KP5", self.app.cam.getProjectionType() == Ogre.PT_ORTHOGRAPHIC):
                     self.app._toggle_projection()
-                ImGui.Separator()
-                if ImGui.MenuItem("Show Axes", "A", self.app.axes_visible):
-                    self.app._toggle_axes()
-                if ImGui.MenuItem("Show Grid", "G", self.app.grid_visible):
-                    self.app._toggle_grid()
-                if ImGui.MenuItem("Show Bounding Box", "B", enode.getShowBoundingBox()):
-                    self.app._toggle_bbox()
                 if ImGui.MenuItem("Wireframe Mode", "W", app.cam.getPolygonMode() == Ogre.PM_WIREFRAME):
                     self.app._toggle_wireframe_mode()
-                if entity.hasSkeleton() and ImGui.MenuItem("Show Skeleton", None, entity.getDisplaySkeleton()):
+                ImGui.EndMenu()
+
+            if entity is not None and ImGui.BeginMenu("Overlay"):
+                enode = entity.getParentSceneNode()
+                if ImGui.MenuItem("Axes", "A", self.app.axes_visible):
+                    self.app._toggle_axes()
+                if ImGui.MenuItem("Grid", "G", self.app.grid_visible):
+                    self.app._toggle_grid()
+                if ImGui.MenuItem("Bounding Box", "B", enode.getShowBoundingBox()):
+                    self.app._toggle_bbox()
+                if entity.hasSkeleton() and ImGui.MenuItem("Skeleton", None, entity.getDisplaySkeleton()):
                     entity.setDisplaySkeleton(not entity.getDisplaySkeleton())
                 ImGui.EndMenu()
 

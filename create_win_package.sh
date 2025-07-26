@@ -6,7 +6,7 @@
 mkdir winpkg
 cd winpkg
 
-curl -L https://dl.cloudsmith.io/public/ogrecave/ogre/raw/versions/v14.3.1/ogre-sdk-v14.3.1-msvc142-x64.zip -o ogre-sdk.zip
+curl -L https://dl.cloudsmith.io/public/ogrecave/ogre/raw/versions/v14.4.0/ogre-sdk-v14.4.0-msvc142-x64.zip -o ogre-sdk.zip
 curl -LO https://www.python.org/ftp/python/3.10.10/python-3.10.10-embed-amd64.zip
 curl -LO https://github.com/OGRECave/ogre-meshviewer/releases/download/24.02/tkinter_3.10.10-amd64.zip
 unzip python-3.10.10-embed-amd64.zip -d package
@@ -38,4 +38,4 @@ cp ../win_resources.cfg package/resources.cfg
 cp -R Media/RTShaderLib Media/Main package/
 cp -R ../fonts package/
 
-mv package ogre-meshviewer_24.10-win64
+mv package ogre-meshviewer_25.07-win64

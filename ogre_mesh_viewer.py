@@ -265,7 +265,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         ImGui.End()
 
     def draw_material(self, matname):
-        if not ImGui.Begin(f"Material Details", True, 0)[1]:
+        if not ImGui.Begin("Material Details", True, 0)[1]:
             self.show_material = None
 
         ImGui.Text(f"\uf1b2 {printable(matname)}")
@@ -436,7 +436,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     highlight = i
 
                 if submesh_details:
-                    ImGui.BulletText(f"Material:")
+                    ImGui.BulletText("Material:")
                     ImGui.SameLine()
                     if ImGui.TextLink("\uf1b2 "+printable(sm.getMaterialName())):
                         self.show_material = sm.getMaterialName()

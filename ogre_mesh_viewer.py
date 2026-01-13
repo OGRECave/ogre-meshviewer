@@ -185,6 +185,7 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         self.show_about = False
         self.show_metrics = False
         self.show_render_settings = False
+        self.show_material = None
         self.side_panel_visible = True
 
         self.app = app
@@ -261,6 +262,44 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         ImGui.Text(self.app.filename)
         ImGui.Separator()
         ImGui.Text("\uf252 Loading..            ")
+        ImGui.End()
+
+    def draw_material(self, matname):
+        if not ImGui.Begin(f"Material Details", True, 0)[1]:
+            self.show_material = None
+
+        ImGui.Text(f"\uf1b2 {printable(matname)}")
+        mat = Ogre.MaterialManager.getSingleton().getByName(matname)
+        t = mat.getBestTechnique()
+        passes = t.getPasses()
+
+        noalpha = ImGui.ColorEditFlags_NoAlpha
+
+        for p in passes:
+            if len(passes) > 1:
+                ImGui.Text(f"Pass #{p.getIndex()}")
+                ImGui.Separator()
+            ImGui.ColorButton("##diffuse", ImGui.ImVec4(*p.getDiffuse()))
+            ImGui.SameLine()
+            ImGui.Text("Diffuse")
+            ImGui.ColorButton("##specular", ImGui.ImVec4(*p.getSpecular()), noalpha)
+            ImGui.SameLine()
+            ImGui.Text("Specular")
+            ImGui.ColorButton("##ambient", ImGui.ImVec4(*p.getAmbient()), noalpha)
+            ImGui.SameLine()
+            ImGui.Text("Ambient")
+
+            tus = p.getTextureUnitStates()
+
+            if len(tus) == 0:
+                continue
+            ImGui.Text("")
+            ImGui.Text("Textures")
+            ImGui.Separator()
+            for tex in p.getTextureUnitStates():
+                status = " (failed)" if tex.isBlank() else ""
+                ImGui.Text(f"\uf03e {tex.getTextureName()}{status}")
+
         ImGui.End()
 
     def load_file(self):
@@ -355,6 +394,9 @@ class MeshViewerGui(Ogre.RenderTargetListener):
         if self.show_render_settings:
             self.draw_render_settings()
 
+        if self.show_material is not None:
+            self.draw_material(self.show_material)
+
         self.logwin.draw()
 
         if entity is None:
@@ -390,7 +432,10 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                     highlight = i
 
                 if submesh_details:
-                    ImGui.BulletText(f"Material: {printable(sm.getMaterialName())}")
+                    ImGui.BulletText(f"Material:")
+                    ImGui.SameLine()
+                    if ImGui.TextLink("\uf1b2 "+printable(sm.getMaterialName())):
+                        self.show_material = sm.getMaterialName()
                     op = ROP2STR[sm.operationType] if sm.operationType <= 6 else "Control Points"
                     ImGui.BulletText(f"Operation: {op}")
 

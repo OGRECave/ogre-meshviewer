@@ -269,11 +269,15 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             self.show_material = None
 
         ImGui.Text(f"\uf1b2 {printable(matname)}")
-        mat = Ogre.MaterialManager.getSingleton().getByName(matname)
-        t = mat.getBestTechnique()
-        passes = t.getPasses()
+
+        matmgr = Ogre.MaterialManager.getSingleton()
+        matmgr.setActiveScheme(self.app.cam.getViewport().getMaterialScheme())
 
         noalpha = ImGui.ColorEditFlags_NoAlpha
+
+        mat = matmgr.getByName(matname)
+        t = mat.getBestTechnique()
+        passes = t.getPasses()
 
         for p in passes:
             if len(passes) > 1:

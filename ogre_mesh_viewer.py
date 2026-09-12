@@ -461,11 +461,11 @@ class MeshViewerGui(Ogre.RenderTargetListener):
                 ImGui.Text("\uf05a EdgeLists present")
 
         if self.highlighted > -1:
-            entity.getSubEntities()[self.highlighted].setMaterialName(self.orig_mat)
+            entity.getSubEntities()[self.highlighted].setMaterial(self.orig_mat)
             self.highlighted = -1
 
         if highlight > -1:
-            self.orig_mat = printable(entity.getSubEntities()[highlight].getMaterial().getName())
+            self.orig_mat = Ogre.MaterialPtr(entity.getSubEntities()[highlight].getMaterial())
             entity.getSubEntities()[highlight].setMaterial(self.app.highlight_mat)
             self.highlighted = highlight
 
@@ -561,6 +561,10 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
         OgreBites.ApplicationContext.__init__(self, "OgreMeshViewer")
         OgreBites.InputListener.__init__(self)
 
+        # in case we want to show the file dialog
+        self._tk_root = tk.Tk()
+        self._tk_root.withdraw()
+
         self.infile = infile
         if not self.infile:
             self.infile = askopenfilename()
@@ -585,10 +589,6 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
 
         self.next_rendersystem = ""
         self.next_campose = None
-
-        # in case we want to show the file dialog
-        root = tk.Tk()
-        root.withdraw()
 
     def keyPressed(self, evt):
         if evt.keysym.sym == OgreBites.SDLK_ESCAPE:

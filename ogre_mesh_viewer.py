@@ -162,7 +162,7 @@ class LogWindow(Ogre.LogListener):
         ImGui.SetNextWindowSize(ImGui.ImVec2(500, 400), ImGui.Cond_FirstUseEver)
         self.show = ImGui.Begin("Log", self.show)[1]
 
-        ImGui.PushFont(self.font)
+        ImGui.PushFont(self.font, 0)
         for ts, msg, lvl in self.items:
             ImGui.PushStyleColor(ImGui.Col_Text, ImGui.ImVec4(0.6, 0.6, 0.6, 1))
             ImGui.Text(ts)

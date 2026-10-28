@@ -3,20 +3,38 @@ version: "26.02"
 confinement: strict
 summary: OGRE Mesh Viewer
 description: Viewer for .mesh model files as consumed by OGRE
-base: core22
+base: core24
+title: OGRE Mesh Viewer
+license: MIT
+issues: https://github.com/OGRECave/ogre-meshviewer/issues
+source-code: https://github.com/OGRECave/ogre-meshviewer
+website: https://github.com/OGRECave/ogre-meshviewer
+
+plugs:
+  gpu-2404:
+    interface: content
+    target: $SNAP/gpu-2404
+    default-provider: mesa-2404
+
+layout:
+  /usr/share/libdrm:
+    bind: $SNAP/gpu-2404/libdrm
+  /usr/share/drirc.d:
+    symlink: $SNAP/gpu-2404/drirc.d
+  /usr/share/X11/XErrorDB:
+    symlink: $SNAP/gpu-2404/X11/XErrorDB
 
 apps:
     ogre-meshviewer:
-        command: bin/desktop-launch python3 $SNAP/bin/ogre_mesh_viewer.py
+        command: bin/gpu-2404-wrapper python3 $SNAP/bin/ogre_mesh_viewer.py
+        desktop: gui/ogre-meshviewer.desktop
         plugs: [home, opengl, x11, removable-media]
         environment:
-            PYTHONPATH: $SNAP/usr/lib/python3.10/:$SNAP/usr/lib/python3.10/dist-packages/:$SNAP/usr/lib/python3.10/lib-dynload
+            PYTHONPATH: $SNAP/usr/lib/python3.12/:$SNAP/usr/lib/python3.12/dist-packages/:$SNAP/usr/lib/python3.12/lib-dynload
             TCL_LIBRARY: $SNAP/usr/share/tcltk/tcl8.6
+            XDG_DATA_DIRS: $SNAP/usr/share:$XDG_DATA_DIRS
+            XDG_CACHE_HOME: $SNAP_USER_COMMON/.cache
 parts:
-    desktop-glib-only:
-        source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
-        source-subdir: glib-only
-        plugin: make
     assimp:
         plugin: cmake
         cmake-parameters:
@@ -26,12 +44,12 @@ parts:
             - -DASSIMP_BUILD_OGRE_IMPORTER=OFF
             - -DASSIMP_BUILD_ASSIMP_TOOLS=OFF
             - -DCMAKE_INSTALL_PREFIX=/usr/
-            - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-15
+            - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20
         source: https://github.com/assimp/assimp.git
         source-tag: v6.0.4
         source-depth: 1
         build-packages:
-            - clang-15
+            - clang-20
     ogre:
         plugin: cmake
         cmake-parameters:
@@ -40,7 +58,7 @@ parts:
             - -DOGRE_BUILD_RENDERSYSTEM_GL3PLUS=TRUE
             - -DOGRE_BUILD_RENDERSYSTEM_GL=TRUE
             - -DOGRE_BUILD_RENDERSYSTEM_GLES2=TRUE
-            - -DOGRE_BUILD_PLUGIN_RSIMAGE=TRUE 
+            - -DOGRE_BUILD_PLUGIN_RSIMAGE=TRUE
             - -DOGRE_BUILD_COMPONENT_PYTHON=TRUE
             - -DOGRE_BUILD_PLUGIN_DOT_SCENE=TRUE
             - -DOGRE_BUILD_COMPONENT_TERRAIN=TRUE
@@ -61,7 +79,7 @@ parts:
             - -DOGRE_BUILD_COMPONENT_PROPERTY=FALSE
             - -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=FALSE
             - -DCMAKE_INSTALL_PREFIX=/usr/
-            - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-15
+            - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20
         source: https://github.com/OGRECave/ogre.git
         source-tag: v14.5.2
         source-depth: 1
@@ -74,8 +92,8 @@ parts:
             - libsdl2-dev
             - libpython3-dev
             - libpugixml-dev
-            - swig4.0
-            - clang-15
+            - swig
+            - clang-20
             - cargo
             - on amd64: [nvidia-cg-dev]
         stage-packages:
@@ -83,14 +101,17 @@ parts:
             - libsdl2-2.0-0
             - python3
             - python3-tk
-            - libpython3.10
+            - libpython3.12t64
             - libpugixml1v5
-            - libgl1
             - libsm6
-            - libgles2
-            - libegl1
             - on amd64: [libcggl]
         after: [assimp]
+        # libpulse.so.0 has a hardcoded RUNPATH of /usr/lib/<triplet>/pulseaudio,
+        # which does not exist inside a strict snap, and libpulsecommon lives
+        # only in that directory. $SNAP/usr/lib is on the default
+        # LD_LIBRARY_PATH, so move it there instead of hardcoding an arch path.
+        organize:
+            "usr/lib/*/pulseaudio/libpulsecommon-*": usr/lib/
     viewer:
         plugin: dump
         source: https://github.com/OGRECave/ogre-meshviewer.git
@@ -99,4 +120,14 @@ parts:
             fonts: bin/fonts
         stage:
             - bin/
-        after: [ogre, desktop-glib-only]
+        after: [ogre]
+    gpu-2404:
+        after: [ogre]
+        source: https://github.com/canonical/gpu-snap.git
+        source-commit: 84e56217ec137c3f8d7a0e773bb7c39c8fc40f28
+        plugin: dump
+        override-prime: |
+          craftctl default
+          ${CRAFT_PART_SRC}/bin/gpu-2404-cleanup mesa-2404
+        prime:
+          - bin/gpu-2404-wrapper

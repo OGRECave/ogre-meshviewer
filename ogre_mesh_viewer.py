@@ -878,10 +878,19 @@ class MeshViewer(OgreBites.ApplicationContext, OgreBites.InputListener):
     def shutdown(self):
         self.scn_mgr.removeListener(self.axes)
         Ogre.LogManager.getSingleton().getDefaultLog().removeListener(self.logwin)
-        OgreBites.ApplicationContext.shutdown(self)
 
+        # Release everything that was created on behalf of this Root while the
+        # managers owning it are still alive. MaterialPtr destructors need a
+        # live MaterialManager and the debug drawer needs the buffer manager.
+        self.gui.orig_mat = None
+        self.highlight_mat = None
+        self.grid_floor = None
         self.entity = None
+        self.ray_query = None
+        self.cam = None
         self.axes = None
+
+        OgreBites.ApplicationContext.shutdown(self)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@
 #
 # Run ./create_win_package.sh from the repository root first. On Windows,
 # install Inno Setup and either put iscc in PATH or set ISCC to ISCC.exe.
+# The app-local VC++ runtime is added to the package before compilation.
 #
 # On Linux, Inno Setup's ISCC.exe can be run through Wine:
 #
@@ -34,6 +35,11 @@ if [ ! -d "$SOURCE_DIR" ]; then
     echo "missing '$SOURCE_DIR'; run ./create_win_package.sh first" >&2
     exit 1
 fi
+
+# Add the app-local VC++ runtime to the installer payload. On Linux this is
+# the only part of the installer build that needs Wine-specific extraction.
+sh ./inno/get_vc_runtime.sh winpkg/vcruntime-x64
+cp winpkg/vcruntime-x64/*.dll "$SOURCE_DIR/"
 
 if [ -z "$ISCC" ]; then
     if command -v iscc >/dev/null 2>&1; then

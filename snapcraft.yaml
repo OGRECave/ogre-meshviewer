@@ -27,7 +27,6 @@ layout:
 apps:
     ogre-meshviewer:
         command: bin/gpu-2404-wrapper python3 $SNAP/bin/ogre_mesh_viewer.py
-        desktop: gui/ogre-meshviewer.desktop
         plugs: [home, opengl, x11, removable-media]
         environment:
             PYTHONPATH: $SNAP/usr/lib/python3.12/:$SNAP/usr/lib/python3.12/dist-packages/:$SNAP/usr/lib/python3.12/lib-dynload

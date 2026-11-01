@@ -3,15 +3,18 @@
 # This should work on Windows (MinGW) and Linux
 # for MinGW use e.g. https://gitforwindows.org/
 
-mkdir winpkg
+VERSION=$(sed -n 's/^version: "\(.*\)"/\1/p' snapcraft.yaml)
+
+mkdir -p winpkg
 cd winpkg
 
-curl -L https://dl.cloudsmith.io/public/ogrecave/ogre/raw/versions/v14.6.3/ogre-sdk-v14.6.3-msvc142-x64.zip -o ogre-sdk.zip
-curl -LO https://www.python.org/ftp/python/3.10.10/python-3.10.10-embed-amd64.zip
-curl -LO https://github.com/OGRECave/ogre-meshviewer/releases/download/24.02/tkinter_3.10.10-amd64.zip
-unzip python-3.10.10-embed-amd64.zip -d package
-unzip tkinter_3.10.10-amd64.zip -d package
-unzip ogre-sdk.zip
+[ -f ogre-sdk.zip ] || curl -L https://dl.cloudsmith.io/public/ogrecave/ogre/raw/versions/v14.6.3/ogre-sdk-v14.6.3-msvc142-x64.zip -o ogre-sdk.zip
+[ -f python-3.10.10-embed-amd64.zip ] || curl -LO https://www.python.org/ftp/python/3.10.10/python-3.10.10-embed-amd64.zip
+[ -f tkinter_3.10.10-amd64.zip ] || curl -LO https://github.com/OGRECave/ogre-meshviewer/releases/download/24.02/tkinter_3.10.10-amd64.zip
+rm -rf package
+unzip -oq python-3.10.10-embed-amd64.zip -d package
+unzip -oq tkinter_3.10.10-amd64.zip -d package
+unzip -oq ogre-sdk.zip
 
 # main
 cp ../ogre*py ../ogre*bat ../LICENSE ../README.md package/
@@ -23,7 +26,12 @@ cp bin/OgreMain.dll bin/OgreBites.dll bin/OgreOverlay.dll bin/OgreRTShaderSystem
 # plugins
 cp bin/Codec*dll bin/RenderSystem*dll bin/Plugin_DotScene.dll bin/Plugin_GLSLangProgramManager.dll package
 # deps
-cp bin/SDL2.dll bin/zlib.dll package
+cp bin/SDL2.dll package
+if [ -f bin/z.dll ]; then
+    cp bin/z.dll package
+else
+    cp bin/zlib.dll package
+fi
 
 # write plugins.cfg
 head -10 bin/plugins.cfg > package/plugins.cfg
@@ -37,5 +45,7 @@ echo Plugin=Plugin_GLSLangProgramManager >> package/plugins.cfg
 cp ../win_resources.cfg package/resources.cfg
 cp -R Media/RTShaderLib Media/Main package/
 cp -R ../fonts package/
+cp ../inno/ogre-meshviewer.ico package/
 
-mv package ogre-meshviewer_26.11-win64
+rm -rf ogre-meshviewer_${VERSION}-win64
+mv package ogre-meshviewer_${VERSION}-win64

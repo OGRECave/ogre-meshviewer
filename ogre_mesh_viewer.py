@@ -1,7 +1,31 @@
 #!/usr/bin/env python
 
-import os.path
+import os
 import time
+
+
+def _enable_high_dpi():
+    """Make the process DPI aware before any window is created.
+
+    This has to happen before tkinter creates its root window in MeshViewer.__init__,
+    which is earlier than Ogre/SDL creates the render window. Windows refuses to
+    change the DPI awareness of a process once it has an HWND, so setting
+    SDL_WINDOWS_DPI_AWARENESS alone would be too late.
+    """
+    if os.name != "nt":
+        return
+
+    import ctypes
+
+    try:
+        # Per-monitor v2 (Windows 10 1703+), the preferred mode.
+        ctypes.windll.user32.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))
+    except AttributeError:
+        # Older Windows: leave the process DPI unaware instead of failing to start.
+        pass
+
+
+_enable_high_dpi()
 
 import tkinter as tk
 from tkinter import filedialog

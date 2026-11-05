@@ -8,12 +8,14 @@ VERSION=$(sed -n 's/^version: "\(.*\)"/\1/p' snapcraft.yaml)
 mkdir -p winpkg
 cd winpkg
 
+PYVER=3.10.10
+
 [ -f ogre-sdk.zip ] || curl -L https://dl.cloudsmith.io/public/ogrecave/ogre/raw/versions/v14.6.3/ogre-sdk-v14.6.3-msvc142-x64.zip -o ogre-sdk.zip
-[ -f python-3.10.10-embed-amd64.zip ] || curl -LO https://www.python.org/ftp/python/3.10.10/python-3.10.10-embed-amd64.zip
-[ -f tkinter_3.10.10-amd64.zip ] || curl -LO https://github.com/OGRECave/ogre-meshviewer/releases/download/24.02/tkinter_3.10.10-amd64.zip
+[ -f python-${PYVER}-embed-amd64.zip ] || curl -LO https://www.python.org/ftp/python/${PYVER}/python-${PYVER}-embed-amd64.zip
+[ -f tkinter_${PYVER}-amd64.zip ] || curl -LO https://github.com/OGRECave/ogre-meshviewer/releases/download/24.02/tkinter_${PYVER}-amd64.zip
 rm -rf package
-unzip -oq python-3.10.10-embed-amd64.zip -d package
-unzip -oq tkinter_3.10.10-amd64.zip -d package
+unzip -oq python-${PYVER}-embed-amd64.zip -d package
+unzip -oq tkinter_${PYVER}-amd64.zip -d package
 unzip -oq ogre-sdk.zip
 
 # main

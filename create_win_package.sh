@@ -29,8 +29,13 @@ else
     [ -f tcltk/DLLs/_tkinter.pyd ] || { echo "failed to extract tcltk-${PYVER}-amd64.msi" >&2; exit 1; }
 fi
 
+# only what tkinter.filedialog needs; skip idlelib, turtledemo and the SDK files.
 cp -R tcltk/Lib/tkinter package/
-cp -R tcltk/tcl package/
+rm -rf package/tkinter/test package/tkinter/tix.py package/tkinter/__pycache__
+mkdir -p package/tcl
+cp -R tcltk/tcl/tcl8.6 tcltk/tcl/tk8.6 package/tcl/
+rm -rf package/tcl/tcl8.6/tzdata package/tcl/tcl8.6/opt0.4 package/tcl/tcl8.6/http1.0
+rm -rf package/tcl/tk8.6/demos package/tcl/tk8.6/images
 cp tcltk/DLLs/_tkinter.pyd tcltk/DLLs/tcl86t.dll tcltk/DLLs/tk86t.dll package/
 
 unzip -oq ogre-sdk.zip

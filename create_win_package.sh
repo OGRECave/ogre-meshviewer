@@ -2,6 +2,7 @@
 
 # This should work on Windows (MinGW) and Linux
 # for MinGW use e.g. https://gitforwindows.org/
+# on Linux install msitools for msiextract
 
 VERSION=$(sed -n 's/^version: "\(.*\)"/\1/p' snapcraft.yaml)
 
@@ -12,10 +13,26 @@ PYVER=3.10.10
 
 [ -f ogre-sdk.zip ] || curl -L https://dl.cloudsmith.io/public/ogrecave/ogre/raw/versions/v14.6.3/ogre-sdk-v14.6.3-msvc142-x64.zip -o ogre-sdk.zip
 [ -f python-${PYVER}-embed-amd64.zip ] || curl -LO https://www.python.org/ftp/python/${PYVER}/python-${PYVER}-embed-amd64.zip
-[ -f tkinter_${PYVER}-amd64.zip ] || curl -LO https://github.com/OGRECave/ogre-meshviewer/releases/download/24.02/tkinter_${PYVER}-amd64.zip
+[ -f tcltk-${PYVER}-amd64.msi ] || curl -L -o tcltk-${PYVER}-amd64.msi https://www.python.org/ftp/python/${PYVER}/amd64/tcltk.msi
 rm -rf package
 unzip -oq python-${PYVER}-embed-amd64.zip -d package
-unzip -oq tkinter_${PYVER}-amd64.zip -d package
+
+# the embeddable package has no tkinter; add it from the official Python MSI.
+# on Linux use msitools (msiextract); under Git for Windows use msiexec.
+rm -rf tcltk
+if command -v msiextract >/dev/null 2>&1; then
+    msiextract -C tcltk tcltk-${PYVER}-amd64.msi
+else
+    command -v cmd >/dev/null 2>&1 || { echo "need msitools (msiextract) or Git for Windows" >&2; exit 1; }
+    mkdir -p tcltk
+    cmd //c "start /wait msiexec /a \"$(cygpath -w "$PWD/tcltk-${PYVER}-amd64.msi")\" /qn TARGETDIR=\"$(cygpath -w "$PWD/tcltk")\""
+    [ -f tcltk/DLLs/_tkinter.pyd ] || { echo "failed to extract tcltk-${PYVER}-amd64.msi" >&2; exit 1; }
+fi
+
+cp -R tcltk/Lib/tkinter package/
+cp -R tcltk/tcl package/
+cp tcltk/DLLs/_tkinter.pyd tcltk/DLLs/tcl86t.dll tcltk/DLLs/tk86t.dll package/
+
 unzip -oq ogre-sdk.zip
 
 # main

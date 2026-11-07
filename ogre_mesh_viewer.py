@@ -454,8 +454,18 @@ class MeshViewerGui(Ogre.RenderTargetListener):
             else:
                 ImGui.Text("Shared Vertices: None")
 
+            submesh_names = {}
+            try:
+                submesh_names = {index: name for name, index in mesh.getSubMeshNameMap().items()}
+            except AttributeError:
+                # getSubMeshNameMap is not wrapped by older Ogre builds
+                pass
+
             for i, sm in enumerate(mesh.getSubMeshes()):
-                submesh_details = ImGui.TreeNode(f"SubMesh #{i}")
+                label = f"SubMesh #{i}"
+                if i in submesh_names:
+                    label += ": " + submesh_names[i]
+                submesh_details = ImGui.TreeNode(label)
                 if ImGui.IsItemHovered():
                     highlight = i
 
